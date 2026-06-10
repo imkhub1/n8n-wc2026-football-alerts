@@ -13,6 +13,14 @@
 
 </div>
 
+<div align="center">
+
+| Mensaje mañana — 07:00 | Mensaje noche — 23:00 |
+| :---: | :---: |
+| ![Mensaje de WhatsApp de la mañana con los partidos del día](docs/screenshots/msg-morning.jpeg) | ![Mensaje de WhatsApp de la noche con resultados y goleadores](docs/screenshots/msg-night.jpeg) |
+
+</div>
+
 ## Resumen
 
 Cada día este workflow envía dos resúmenes automáticos por WhatsApp a una lista de destinatarios:
