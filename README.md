@@ -7,7 +7,7 @@
 [![Deployed on Railway](https://img.shields.io/badge/deployed-Railway-0B0D0E?logo=railway&logoColor=white)](https://railway.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-🇪🇸 *¿Prefieres español?* → [**README.es.md**](README.es.md)
+*¿Prefieres español?* → [**README.es.md**](README.es.md)
 
 ---
 
