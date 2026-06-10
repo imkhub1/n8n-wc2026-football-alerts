@@ -13,6 +13,14 @@
 
 </div>
 
+<div align="center">
+
+| Morning message — 07:00 | Night message — 23:00 |
+| :---: | :---: |
+| ![Morning WhatsApp message showing today's match schedule](docs/screenshots/msg-morning.jpeg) | ![Night WhatsApp message showing today's results with scorers](docs/screenshots/msg-night.jpeg) |
+
+</div>
+
 ## Overview
 
 Every day this workflow sends two automated WhatsApp digests to a list of recipients:
