@@ -1,15 +1,17 @@
-# WC2026 Daily Match Alerts — WhatsApp
+# ⚽ WC2026 Daily Match Alerts — WhatsApp
 
 > Automated **WhatsApp** notifications for international football matches involving **FIFA World Cup 2026** nations — built with **n8n**, **Twilio** and the **API-Football** REST API, deployed on **Railway**.
+
+🌐 [Leer en español](README.es.md)
+
+<div align="center">
 
 [![n8n](https://img.shields.io/badge/built%20with-n8n-EA4B71?logo=n8n&logoColor=white)](https://n8n.io)
 [![Twilio](https://img.shields.io/badge/WhatsApp-Twilio-F22F46?logo=twilio&logoColor=white)](https://www.twilio.com/whatsapp)
 [![Deployed on Railway](https://img.shields.io/badge/deployed-Railway-0B0D0E?logo=railway&logoColor=white)](https://railway.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-*¿Prefieres español?* → [README.es.md](README.es.md)
-
-[Overview](#overview) • [How it works](#how-it-works) • [Preview](#preview) • [Stack](#stack) • [Prerequisites](#prerequisites) • [Getting started](#getting-started) • [Deployment](#deployment-localhost--railway)
+</div>
 
 ## Overview
 
@@ -51,16 +53,6 @@ flowchart LR
 - **Rich results.** The night digest calls `/fixtures/events` per finished match to list scorers with minute, plus `(P)` penalty and `(OG)` own-goal tags, correctly crediting own goals to the opposing side.
 - **WhatsApp-safe chunking.** Long result days are split into ≤ 1500-character messages so nothing is truncated by the provider.
 - **Fan-out delivery.** A single formatted message is delivered to every recipient in one execution.
-
-## Preview
-
-Sample WhatsApp messages delivered to recipients:
-
-| Morning alert (07:00 CR) | Night results (23:00 CR) |
-| :---: | :---: |
-| ![Morning alert preview](docs/screenshots/morning-preview.png) | ![Night results preview](docs/screenshots/night-preview.png) |
-
-> Screenshots cropped to hide personal phone numbers. Add yours to `docs/screenshots/` — see [`docs/README.md`](docs/README.md).
 
 ## Stack
 
@@ -160,16 +152,6 @@ N8N_ENCRYPTION_KEY=<stable-random-32+-chars>
 > Keep `N8N_ENCRYPTION_KEY` **stable** across redeploys — if it changes, n8n can no longer decrypt previously saved credentials.
 
 See [`.env.example`](.env.example) for the full annotated list.
-
-## Notable techniques
-
-- **Cloud deployment** — promoted a local prototype to a real production service on Railway (managed Postgres, persistent storage, public HTTPS domain).
-- **Secrets management** — all credentials externalized to environment variables / n8n Credentials; the repo is safe to publish with zero leaked secrets.
-- **Timezone-correct scheduling** — robust handling of the `UTC ↔ UTC-6` day-boundary problem with Luxon, avoiding missed late-evening fixtures.
-- **Third-party API integration** — primary and secondary calls to API-Football, including a per-match call to enrich results with scorers.
-- **Data shaping** — dedup, business-rule filtering, regex exclusions, and provider-aware message chunking.
-- **Notification fan-out** — a single computed payload delivered to N recipients per run.
-- **Documentation & DX** — importable export, annotated `.env.example`, bilingual docs, and in-canvas sticky notes explaining each branch.
 
 ## Repository structure
 
