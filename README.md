@@ -1,4 +1,4 @@
-# ⚽ WC2026 Daily Match Alerts — WhatsApp
+# WC2026 Daily Match Alerts — WhatsApp
 
 > Automated **WhatsApp** notifications for international football matches involving **FIFA World Cup 2026** nations — built with **n8n**, **Twilio** and the **API-Football** REST API, and deployed to production on **Railway**.
 
