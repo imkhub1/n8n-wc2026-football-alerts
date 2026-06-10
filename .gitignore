@@ -1,0 +1,32 @@
+# Secrets & environment
+.env
+.env.local
+*.env
+!.env.example
+
+# n8n local data / credentials
+.n8n/
+n8n-data/
+database.sqlite
+*.sqlite
+credentials.json
+credentials/
+
+# Raw / unscrubbed exports (never commit these)
+_raw_workflow.json
+*_raw.json
+**/raw/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node
+node_modules/
