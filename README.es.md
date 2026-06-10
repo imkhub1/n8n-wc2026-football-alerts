@@ -9,7 +9,7 @@
 
 *Prefer English?* → [README.md](README.md)
 
-[Resumen](#resumen) • [Cómo funciona](#cómo-funciona) • [Stack](#stack) • [Requisitos previos](#requisitos-previos) • [Primeros pasos](#primeros-pasos) • [Despliegue](#despliegue-localhost--railway)
+[Resumen](#resumen) • [Cómo funciona](#cómo-funciona) • [Vista previa](#vista-previa) • [Stack](#stack) • [Requisitos previos](#requisitos-previos) • [Primeros pasos](#primeros-pasos) • [Despliegue](#despliegue-localhost--railway)
 
 ## Resumen
 
@@ -25,6 +25,8 @@ Ambos resúmenes se filtran para incluir solo lo importante: selecciones **clasi
 > **Caso de uso:** un grupo de amigos y familia en Costa Rica que quiere un resumen diario limpio, sin spam, del fútbol relevante para el Mundial, directo en WhatsApp — sin app, sin feed, sin ruido.
 
 ## Cómo funciona
+
+![Canvas del workflow de n8n — ambos pipelines y sticky notes](docs/screenshots/workflow-canvas.png)
 
 ```mermaid
 flowchart LR
@@ -49,6 +51,16 @@ flowchart LR
 - **Resultados enriquecidos.** El resumen nocturno llama al endpoint `/fixtures/events` por cada partido finalizado para listar goleadores con minuto, más etiquetas `(P)` penal y `(OG)` autogol, acreditando correctamente los autogoles al rival.
 - **División segura para WhatsApp.** Los días con muchos resultados se dividen en mensajes de ≤ 1500 caracteres para que el proveedor no trunque nada.
 - **Envío masivo (fan-out).** Un único mensaje formateado se entrega a todos los destinatarios en una sola ejecución.
+
+## Vista previa
+
+Ejemplos de los mensajes de WhatsApp que reciben los destinatarios:
+
+| Alerta matutina (07:00 CR) | Resultados nocturnos (23:00 CR) |
+| :---: | :---: |
+| ![Vista previa — alerta matutina](docs/screenshots/morning-preview.png) | ![Vista previa — resultados nocturnos](docs/screenshots/night-preview.png) |
+
+> Capturas recortadas para ocultar números de teléfono. Agrega las tuyas en `docs/screenshots/` — ver [`docs/README.md`](docs/README.md).
 
 ## Stack
 
@@ -166,6 +178,10 @@ Ver [`.env.example`](.env.example) para la lista completa y anotada.
 ├── workflow/
 │   └── wc2026-football-alerts.json   # Workflow de n8n importable (sin secretos)
 ├── docs/
+│   ├── screenshots/
+│   │   ├── workflow-canvas.png       # Captura del canvas de n8n
+│   │   ├── morning-preview.png       # Ejemplo de alerta matutina de WhatsApp
+│   │   └── night-preview.png         # Ejemplo de mensaje de resultados nocturnos
 │   └── README.md                     # Guía de capturas de pantalla
 ├── .env.example                      # Variables de entorno anotadas
 ├── .gitignore

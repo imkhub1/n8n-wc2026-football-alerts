@@ -9,7 +9,7 @@
 
 *¿Prefieres español?* → [README.es.md](README.es.md)
 
-[Overview](#overview) • [How it works](#how-it-works) • [Stack](#stack) • [Prerequisites](#prerequisites) • [Getting started](#getting-started) • [Deployment](#deployment-localhost--railway)
+[Overview](#overview) • [How it works](#how-it-works) • [Preview](#preview) • [Stack](#stack) • [Prerequisites](#prerequisites) • [Getting started](#getting-started) • [Deployment](#deployment-localhost--railway)
 
 ## Overview
 
@@ -25,6 +25,8 @@ Both digests are filtered to only the matches that matter: national teams that a
 > **Use case:** a group of friends and family in Costa Rica who want a clean, spam-free daily summary of World Cup-relevant football, delivered straight to WhatsApp — no app, no feed, no noise.
 
 ## How it works
+
+![n8n workflow canvas — both pipelines and sticky notes](docs/screenshots/workflow-canvas.png)
 
 ```mermaid
 flowchart LR
@@ -49,6 +51,16 @@ flowchart LR
 - **Rich results.** The night digest calls `/fixtures/events` per finished match to list scorers with minute, plus `(P)` penalty and `(OG)` own-goal tags, correctly crediting own goals to the opposing side.
 - **WhatsApp-safe chunking.** Long result days are split into ≤ 1500-character messages so nothing is truncated by the provider.
 - **Fan-out delivery.** A single formatted message is delivered to every recipient in one execution.
+
+## Preview
+
+Sample WhatsApp messages delivered to recipients:
+
+| Morning alert (07:00 CR) | Night results (23:00 CR) |
+| :---: | :---: |
+| ![Morning alert preview](docs/screenshots/morning-preview.png) | ![Night results preview](docs/screenshots/night-preview.png) |
+
+> Screenshots cropped to hide personal phone numbers. Add yours to `docs/screenshots/` — see [`docs/README.md`](docs/README.md).
 
 ## Stack
 
@@ -166,6 +178,10 @@ See [`.env.example`](.env.example) for the full annotated list.
 ├── workflow/
 │   └── wc2026-football-alerts.json   # Importable n8n workflow (secrets scrubbed)
 ├── docs/
+│   ├── screenshots/
+│   │   ├── workflow-canvas.png       # n8n canvas screenshot
+│   │   ├── morning-preview.png       # Sample morning WhatsApp alert
+│   │   └── night-preview.png         # Sample night results message
 │   └── README.md                     # Screenshot guidance
 ├── .env.example                      # Annotated environment variables
 ├── .gitignore
