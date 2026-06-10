@@ -1,15 +1,17 @@
-# WC2026 Alertas Diarias — WhatsApp
+# ⚽ WC2026 Alertas Diarias — WhatsApp
 
 > Notificaciones automáticas por **WhatsApp** sobre partidos de fútbol internacional de selecciones del **Mundial FIFA 2026** — construido con **n8n**, **Twilio** y la API REST de **API-Football**, desplegado en producción sobre **Railway**.
+
+🌐 [Read in English](README.md)
+
+<div align="center">
 
 [![n8n](https://img.shields.io/badge/built%20with-n8n-EA4B71?logo=n8n&logoColor=white)](https://n8n.io)
 [![Twilio](https://img.shields.io/badge/WhatsApp-Twilio-F22F46?logo=twilio&logoColor=white)](https://www.twilio.com/whatsapp)
 [![Deployed on Railway](https://img.shields.io/badge/deployed-Railway-0B0D0E?logo=railway&logoColor=white)](https://railway.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-*Prefer English?* → [README.md](README.md)
-
-[Resumen](#resumen) • [Cómo funciona](#cómo-funciona) • [Vista previa](#vista-previa) • [Stack](#stack) • [Requisitos previos](#requisitos-previos) • [Primeros pasos](#primeros-pasos) • [Despliegue](#despliegue-localhost--railway)
+</div>
 
 ## Resumen
 
@@ -51,16 +53,6 @@ flowchart LR
 - **Resultados enriquecidos.** El resumen nocturno llama al endpoint `/fixtures/events` por cada partido finalizado para listar goleadores con minuto, más etiquetas `(P)` penal y `(OG)` autogol, acreditando correctamente los autogoles al rival.
 - **División segura para WhatsApp.** Los días con muchos resultados se dividen en mensajes de ≤ 1500 caracteres para que el proveedor no trunque nada.
 - **Envío masivo (fan-out).** Un único mensaje formateado se entrega a todos los destinatarios en una sola ejecución.
-
-## Vista previa
-
-Ejemplos de los mensajes de WhatsApp que reciben los destinatarios:
-
-| Alerta matutina (07:00 CR) | Resultados nocturnos (23:00 CR) |
-| :---: | :---: |
-| ![Vista previa — alerta matutina](docs/screenshots/morning-preview.png) | ![Vista previa — resultados nocturnos](docs/screenshots/night-preview.png) |
-
-> Capturas recortadas para ocultar números de teléfono. Agrega las tuyas en `docs/screenshots/` — ver [`docs/README.md`](docs/README.md).
 
 ## Stack
 
@@ -161,16 +153,6 @@ N8N_ENCRYPTION_KEY=<clave-aleatoria-estable-32+-chars>
 
 Ver [`.env.example`](.env.example) para la lista completa y anotada.
 
-## Técnicas destacadas
-
-- **Despliegue en la nube** — prototipo local promovido a un servicio de producción real en Railway (Postgres administrado, almacenamiento persistente, dominio HTTPS público).
-- **Gestión de secretos** — todas las credenciales externalizadas a variables de entorno / Credenciales de n8n; el repo es seguro de publicar sin filtrar secretos.
-- **Programación correcta por zona horaria** — manejo robusto del problema de límite de día `UTC ↔ UTC-6` con Luxon, evitando partidos nocturnos perdidos.
-- **Integración con APIs de terceros** — llamadas primarias y secundarias a API-Football, incluyendo una llamada por partido para enriquecer resultados con goleadores.
-- **Transformación de datos** — dedup, filtrado por reglas de negocio, exclusiones con regex y división de mensajes según el proveedor.
-- **Envío masivo de notificaciones** — un único payload calculado entregado a N destinatarios por ejecución.
-- **Documentación y DX** — export importable, `.env.example` anotado, documentación bilingüe y sticky notes en el canvas explicando cada rama.
-
 ## Estructura del repositorio
 
 ```
@@ -179,9 +161,7 @@ Ver [`.env.example`](.env.example) para la lista completa y anotada.
 │   └── wc2026-football-alerts.json   # Workflow de n8n importable (sin secretos)
 ├── docs/
 │   ├── screenshots/
-│   │   ├── workflow-canvas.png       # Captura del canvas de n8n
-│   │   ├── morning-preview.png       # Ejemplo de alerta matutina de WhatsApp
-│   │   └── night-preview.png         # Ejemplo de mensaje de resultados nocturnos
+│   │   └── workflow-canvas.png       # Captura del canvas de n8n
 │   └── README.md                     # Guía de capturas de pantalla
 ├── .env.example                      # Variables de entorno anotadas
 ├── .gitignore
