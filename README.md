@@ -161,9 +161,7 @@ See [`.env.example`](.env.example) for the full annotated list.
 │   └── wc2026-football-alerts.json   # Importable n8n workflow (secrets scrubbed)
 ├── docs/
 │   ├── screenshots/
-│   │   ├── workflow-canvas.png       # n8n canvas screenshot
-│   │   ├── morning-preview.png       # Sample morning WhatsApp alert
-│   │   └── night-preview.png         # Sample night results message
+│   │   └── workflow-canvas.png       # n8n canvas screenshot
 │   └── README.md                     # Screenshot guidance
 ├── .env.example                      # Annotated environment variables
 ├── .gitignore
