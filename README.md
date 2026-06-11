@@ -60,6 +60,7 @@ flowchart LR
 - **Business filtering in code.** Only leagues `1` (World Cup) and `10` (Friendlies); only WC2026-qualified nations; youth teams (`U17`, `U20`, `U23`…) excluded via regex.
 - **Rich results.** The night digest calls `/fixtures/events` per finished match to list scorers with minute, plus `(P)` penalty and `(OG)` own-goal tags, correctly crediting own goals to the opposing side.
 - **WhatsApp-safe chunking.** Long result days are split into ≤ 1500-character messages so nothing is truncated by the provider.
+- **Stay inside WhatsApp's 24h window.** WhatsApp only delivers business-initiated free-form messages to users who messaged the number in the last 24 hours; otherwise Twilio returns error `63016`. The morning digest ends with a short reminder asking recipients to reply (e.g. *"OK"*) so their 24-hour window stays open and they keep receiving the daily report.
 - **Fan-out delivery.** A single formatted message is delivered to every recipient in one execution.
 
 ## Stack
