@@ -60,6 +60,7 @@ flowchart LR
 - **Filtrado de negocio en código.** Solo ligas `1` (Mundial) y `10` (Amistosos); solo selecciones del Mundial 2026; equipos juveniles (`U17`, `U20`, `U23`…) excluidos con regex.
 - **Resultados enriquecidos.** El resumen nocturno llama al endpoint `/fixtures/events` por cada partido finalizado para listar goleadores con minuto, más etiquetas `(P)` penal y `(OG)` autogol, acreditando correctamente los autogoles al rival.
 - **División segura para WhatsApp.** Los días con muchos resultados se dividen en mensajes de ≤ 1500 caracteres para que el proveedor no trunque nada.
+- **Mantenerse dentro de la ventana de 24h de WhatsApp.** WhatsApp solo entrega mensajes de texto libre iniciados por el negocio a usuarios que escribieron al número en las últimas 24 horas; de lo contrario Twilio devuelve el error `63016`. El mensaje de la mañana termina con un breve recordatorio pidiendo a los destinatarios que respondan (por ejemplo *"OK"*) para mantener abierta su ventana de 24 horas y seguir recibiendo el reporte diario.
 - **Envío masivo (fan-out).** Un único mensaje formateado se entrega a todos los destinatarios en una sola ejecución.
 
 ## Stack
