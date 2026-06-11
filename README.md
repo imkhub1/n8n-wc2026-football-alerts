@@ -17,7 +17,7 @@
 
 | Morning message — 07:00 | Night message — 23:00 |
 | :---: | :---: |
-| ![Morning WhatsApp message showing today's match schedule](docs/screenshots/msg-morning.jpeg) | ![Night WhatsApp message showing today's results with scorers](docs/screenshots/msg-night.jpeg) |
+| ![Morning WhatsApp message showing today's match schedule](docs/screenshots/msg-morning.png) | ![Night WhatsApp message showing today's results with scorers](docs/screenshots/msg-night.png) |
 
 </div>
 

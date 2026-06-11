@@ -17,7 +17,7 @@
 
 | Mensaje mañana — 07:00 | Mensaje noche — 23:00 |
 | :---: | :---: |
-| ![Mensaje de WhatsApp de la mañana con los partidos del día](docs/screenshots/msg-morning.jpeg) | ![Mensaje de WhatsApp de la noche con resultados y goleadores](docs/screenshots/msg-night.jpeg) |
+| ![Mensaje de WhatsApp de la mañana con los partidos del día](docs/screenshots/msg-morning.png) | ![Mensaje de WhatsApp de la noche con resultados y goleadores](docs/screenshots/msg-night.png) |
 
 </div>
 
