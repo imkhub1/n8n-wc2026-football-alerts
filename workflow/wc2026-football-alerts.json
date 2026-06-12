@@ -401,25 +401,7 @@
   "activeVersionId": "ac41dedc-b535-4c20-b75f-fe39ffc8cf24",
   "versionCounter": 155,
   "triggerCount": 2,
-  "shared": [
-    {
-      "updatedAt": "2026-06-03T07:47:32.604Z",
-      "createdAt": "2026-06-03T07:47:32.604Z",
-      "role": "workflow:owner",
-      "workflowId": "r2kp3lSJz2pOfKBl",
-      "projectId": "YTkY6fucjtA3Jb4R",
-      "project": {
-        "updatedAt": "2026-06-03T07:45:31.181Z",
-        "createdAt": "2026-06-03T03:44:13.932Z",
-        "id": "YTkY6fucjtA3Jb4R",
-        "name": "Kevin Diaz <kevindmadrigal@gmail.com>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "creatorId": "831de140-d6fc-405b-aa04-a06b99cee97c"
-      }
-    }
-  ],
+  "shared": [],
   "tags": [
     {
       "updatedAt": "2026-06-03T07:47:30.267Z",
