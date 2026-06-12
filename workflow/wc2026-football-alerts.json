@@ -1,5 +1,7 @@
 {
   "name": "WC2026 Daily Match Alerts — WhatsApp",
+  "description": "Sends daily WhatsApp alerts via Twilio for international football matches involving WC2026 qualifying nations. Morning preview at 7am + results with scorers at 11pm (Costa Rica time).",
+  "isArchived": false,
   "nodes": [
     {
       "parameters": {
@@ -55,7 +57,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const crNow = DateTime.now().setZone('America/Costa_Rica');\nconst crDayStartMs = crNow.startOf('day').toMillis();\nconst crDayEndMs   = crNow.endOf('day').toMillis();\n\nconst isYouth = name => /\\bU\\d{2}\\b/i.test(name);\nconst VALID_LEAGUES = [1, 10];\nconst VALID_STATUSES = ['NS', 'TBD'];\n\nconst WC2026_QUALIFIERS = new Set([\n  'Australia','Iran','Japan','Jordan','South Korea','Korea Republic',\n  'Qatar','Saudi Arabia','Uzbekistan','Iraq',\n  'Algeria','Cape Verde','Cabo Verde','Ivory Coast',\"Cote d'Ivoire\",'Egypt',\n  'Ghana','Morocco','Senegal','South Africa','Tunisia','Congo DR','DR Congo',\n  'United States','USA','Canada','Mexico','Cura\\u00e7ao','Curacao','Haiti','Panama',\n  'Argentina','Brazil','Colombia','Ecuador','Paraguay','Uruguay',\n  'New Zealand',\n  'England','France','Croatia','Norway','Portugal','Germany',\n  'Netherlands','Austria','Belgium','Scotland','Spain','Switzerland',\n  'Sweden','Turkey','T\\u00fcrkiye','Bosnia','Bosnia and Herzegovina',\n  'Czech Republic','Czechia','Iceland',\n]);\n\nconst recipients = [\n  '+10000000001',\n  '+10000000002',\n  '+10000000003',\n  '+10000000004',\n  '+10000000005'\n];\n\n// Primary: today CR date (UTC today)\nconst primaryFixtures = $(\"Fetch Today's Matches\").first().json.response || [];\n// Secondary: next UTC day \u2014 covers CR evening 6 pm\u2013midnight\nconst secondaryFixtures = $input.first().json.response || [];\n\n// Combine, deduplicate, filter to CR calendar day\nconst seenIds = new Set();\nconst crDayFixtures = [...primaryFixtures, ...secondaryFixtures]\n  .filter(f => {\n    if (seenIds.has(f.fixture.id)) return false;\n    seenIds.add(f.fixture.id);\n    const ts = new Date(f.fixture.date).getTime();\n    return ts >= crDayStartMs && ts <= crDayEndMs;\n  });\n\n// Business filters\nconst fixtures = crDayFixtures.filter(m => {\n  if (!VALID_LEAGUES.includes(m.league.id)) return false;\n  if (!VALID_STATUSES.includes(m.fixture.status.short)) return false;\n  if (isYouth(m.teams.home.name) || isYouth(m.teams.away.name)) return false;\n  if (!WC2026_QUALIFIERS.has(m.teams.home.name) && !WC2026_QUALIFIERS.has(m.teams.away.name)) return false;\n  return true;\n});\n\nif (fixtures.length === 0) {\n  return recipients.map(to => ({ json: { message: '\\uD83C\\uDF0D No matches involving World Cup 2026 teams scheduled for today.\\n\\n_\\uD83D\\uDCAC Reply to this message (e.g. \\\"OK\\\") to keep receiving the daily report._', to } }));\n}\n\nconst flags = {\n  'Afghanistan': '\\uD83C\\uDDE6\\uD83C\\uDDEB', 'Albania': '\\uD83C\\uDDE6\\uD83C\\uDDF1', 'Algeria': '\\uD83C\\uDDE9\\uD83C\\uDDFF', 'Andorra': '\\uD83C\\uDDE6\\uD83C\\uDDE9', 'Angola': '\\uD83C\\uDDE6\\uD83C\\uDDF4',\n  'Argentina': '\\uD83C\\uDDE6\\uD83C\\uDDF7', 'Armenia': '\\uD83C\\uDDE6\\uD83C\\uDDF2', 'Australia': '\\uD83C\\uDDE6\\uD83C\\uDDFA', 'Austria': '\\uD83C\\uDDE6\\uD83C\\uDDF9', 'Azerbaijan': '\\uD83C\\uDDE6\\uD83C\\uDDFF',\n  'Bahrain': '\\uD83C\\uDDE7\\uD83C\\uDDED', 'Bangladesh': '\\uD83C\\uDDE7\\uD83C\\uDDE9', 'Belarus': '\\uD83C\\uDDE7\\uD83C\\uDDFE', 'Belgium': '\\uD83C\\uDDE7\\uD83C\\uDDEA', 'Benin': '\\uD83C\\uDDE7\\uD83C\\uDDEF',\n  'Bolivia': '\\uD83C\\uDDE7\\uD83C\\uDDF4', 'Bosnia': '\\uD83C\\uDDE7\\uD83C\\uDDE6', 'Botswana': '\\uD83C\\uDDE7\\uD83C\\uDDFC', 'Brazil': '\\uD83C\\uDDE7\\uD83C\\uDDF7', 'British Virgin Islands': '\\uD83C\\uDDFB\\uD83C\\uDDEC',\n  'Bulgaria': '\\uD83C\\uDDE7\\uD83C\\uDDEC', 'Burkina Faso': '\\uD83C\\uDDE7\\uD83C\\uDDEB', 'Burundi': '\\uD83C\\uDDE7\\uD83C\\uDDEE', 'Cambodia': '\\uD83C\\uDDF0\\uD83C\\uDDED', 'Cameroon': '\\uD83C\\uDDE8\\uD83C\\uDDF2',\n  'Canada': '\\uD83C\\uDDE8\\uD83C\\uDDE6', 'Cape Verde': '\\uD83C\\uDDE8\\uD83C\\uDDFB', 'Chile': '\\uD83C\\uDDE8\\uD83C\\uDDF1', 'China': '\\uD83C\\uDDE8\\uD83C\\uDDF3', 'Colombia': '\\uD83C\\uDDE8\\uD83C\\uDDF4',\n  'Congo': '\\uD83C\\uDDE8\\uD83C\\uDDEC', 'Congo DR': '\\uD83C\\uDDE8\\uD83C\\uDDE9', 'Costa Rica': '\\uD83C\\uDDE8\\uD83C\\uDDF7', 'Croatia': '\\uD83C\\uDDED\\uD83C\\uDDF7', 'Cuba': '\\uD83C\\uDDE8\\uD83C\\uDDFA',\n  'Cyprus': '\\uD83C\\uDDE8\\uD83C\\uDDFE', 'Czech Republic': '\\uD83C\\uDDE8\\uD83C\\uDDFF', 'Denmark': '\\uD83C\\uDDE9\\uD83C\\uDDF0', 'Ecuador': '\\uD83C\\uDDEA\\uD83C\\uDDE8', 'Egypt': '\\uD83C\\uDDEA\\uD83C\\uDDEC',\n  'El Salvador': '\\uD83C\\uDDF8\\uD83C\\uDDFB', 'England': '\\uD83C\\uDFF4\\uDB40\\uDC67\\uDB40\\uDC62\\uDB40\\uDC65\\uDB40\\uDC6E\\uDB40\\uDC67\\uDB40\\uDC7F', 'Estonia': '\\uD83C\\uDDEA\\uD83C\\uDDEA', 'Ethiopia': '\\uD83C\\uDDEA\\uD83C\\uDDF9', 'Finland': '\\uD83C\\uDDEB\\uD83C\\uDDEE',\n  'France': '\\uD83C\\uDDEB\\uD83C\\uDDF7', 'Gabon': '\\uD83C\\uDDEC\\uD83C\\uDDE6', 'Gambia': '\\uD83C\\uDDEC\\uD83C\\uDDF2', 'Georgia': '\\uD83C\\uDDEC\\uD83C\\uDDEA', 'Germany': '\\uD83C\\uDDE9\\uD83C\\uDDEA',\n  'Ghana': '\\uD83C\\uDDEC\\uD83C\\uDDED', 'Gibraltar': '\\uD83C\\uDDEC\\uD83C\\uDDEE', 'Greece': '\\uD83C\\uDDEC\\uD83C\\uDDF7', 'Guatemala': '\\uD83C\\uDDEC\\uD83C\\uDDF9', 'Guinea': '\\uD83C\\uDDEC\\uD83C\\uDDF3',\n  'Guinea-Bissau': '\\uD83C\\uDDEC\\uD83C\\uDDFC', 'Guam': '\\uD83C\\uDDEC\\uD83C\\uDDFA', 'Haiti': '\\uD83C\\uDDED\\uD83C\\uDDF9', 'Honduras': '\\uD83C\\uDDED\\uD83C\\uDDF3', 'Hungary': '\\uD83C\\uDDED\\uD83C\\uDDFA',\n  'Iceland': '\\uD83C\\uDDEE\\uD83C\\uDDF8', 'India': '\\uD83C\\uDDEE\\uD83C\\uDDF3', 'Indonesia': '\\uD83C\\uDDEE\\uD83C\\uDDE9', 'Iran': '\\uD83C\\uDDEE\\uD83C\\uDDF7', 'Iraq': '\\uD83C\\uDDEE\\uD83C\\uDDF6',\n  'Ireland': '\\uD83C\\uDDEE\\uD83C\\uDDEA', 'Israel': '\\uD83C\\uDDEE\\uD83C\\uDDF1', 'Italy': '\\uD83C\\uDDEE\\uD83C\\uDDF9', 'Ivory Coast': '\\uD83C\\uDDE8\\uD83C\\uDDEE', \"Cote d'Ivoire\": '\\uD83C\\uDDE8\\uD83C\\uDDEE',\n  'Jamaica': '\\uD83C\\uDDEF\\uD83C\\uDDF2', 'Japan': '\\uD83C\\uDDEF\\uD83C\\uDDF5', 'Jordan': '\\uD83C\\uDDEF\\uD83C\\uDDF4', 'Kazakhstan': '\\uD83C\\uDDF0\\uD83C\\uDDFF', 'Kenya': '\\uD83C\\uDDF0\\uD83C\\uDDEA',\n  'Kosovo': '\\uD83C\\uDDFD\\uD83C\\uDDF0', 'Kuwait': '\\uD83C\\uDDF0\\uD83C\\uDDFC', 'Kyrgyzstan': '\\uD83C\\uDDF0\\uD83C\\uDDEC', 'Latvia': '\\uD83C\\uDDF1\\uD83C\\uDDFB', 'Lebanon': '\\uD83C\\uDDF1\\uD83C\\uDDE7',\n  'Liberia': '\\uD83C\\uDDF1\\uD83C\\uDDF7', 'Libya': '\\uD83C\\uDDF1\\uD83C\\uDDFE', 'Lithuania': '\\uD83C\\uDDF1\\uD83C\\uDDF9', 'Luxembourg': '\\uD83C\\uDDF1\\uD83C\\uDDFA', 'Madagascar': '\\uD83C\\uDDF2\\uD83C\\uDDEC',\n  'Malawi': '\\uD83C\\uDDF2\\uD83C\\uDDFC', 'Malaysia': '\\uD83C\\uDDF2\\uD83C\\uDDFE', 'Mali': '\\uD83C\\uDDF2\\uD83C\\uDDF1', 'Malta': '\\uD83C\\uDDF2\\uD83C\\uDDF9', 'Mauritania': '\\uD83C\\uDDF2\\uD83C\\uDDF7',\n  'Mexico': '\\uD83C\\uDDF2\\uD83C\\uDDFD', 'Moldova': '\\uD83C\\uDDF2\\uD83C\\uDDE9', 'Montenegro': '\\uD83C\\uDDF2\\uD83C\\uDDEA', 'Morocco': '\\uD83C\\uDDF2\\uD83C\\uDDE6', 'Mozambique': '\\uD83C\\uDDF2\\uD83C\\uDDFF',\n  'Myanmar': '\\uD83C\\uDDF2\\uD83C\\uDDF2', 'Namibia': '\\uD83C\\uDDF3\\uD83C\\uDDE6', 'Nepal': '\\uD83C\\uDDF3\\uD83C\\uDDF5', 'Netherlands': '\\uD83C\\uDDF3\\uD83C\\uDDF1', 'New Zealand': '\\uD83C\\uDDF3\\uD83C\\uDDFF',\n  'Nicaragua': '\\uD83C\\uDDF3\\uD83C\\uDDEE', 'Niger': '\\uD83C\\uDDF3\\uD83C\\uDDEA', 'Nigeria': '\\uD83C\\uDDF3\\uD83C\\uDDEC', 'North Korea': '\\uD83C\\uDDF0\\uD83C\\uDDF5', 'North Macedonia': '\\uD83C\\uDDF2\\uD83C\\uDDF0',\n  'Northern Ireland': '\\uD83C\\uDDEC\\uD83C\\uDDE7', 'Norway': '\\uD83C\\uDDF3\\uD83C\\uDDF4', 'Oman': '\\uD83C\\uDDF4\\uD83C\\uDDF2', 'Pakistan': '\\uD83C\\uDDF5\\uD83C\\uDDF0', 'Palestine': '\\uD83C\\uDDF5\\uD83C\\uDDF8',\n  'Panama': '\\uD83C\\uDDF5\\uD83C\\uDDE6', 'Paraguay': '\\uD83C\\uDDF5\\uD83C\\uDDFE', 'Peru': '\\uD83C\\uDDF5\\uD83C\\uDDEA', 'Philippines': '\\uD83C\\uDDF5\\uD83C\\uDDED', 'Poland': '\\uD83C\\uDDF5\\uD83C\\uDDF1',\n  'Portugal': '\\uD83C\\uDDF5\\uD83C\\uDDF9', 'Qatar': '\\uD83C\\uDDF6\\uD83C\\uDDE6', 'Romania': '\\uD83C\\uDDF7\\uD83C\\uDDF4', 'Russia': '\\uD83C\\uDDF7\\uD83C\\uDDFA', 'Rwanda': '\\uD83C\\uDDF7\\uD83C\\uDDFC',\n  'Saudi Arabia': '\\uD83C\\uDDF8\\uD83C\\uDDE6', 'Scotland': '\\uD83C\\uDFF4\\uDB40\\uDC67\\uDB40\\uDC62\\uDB40\\uDC73\\uDB40\\uDC63\\uDB40\\uDC74\\uDB40\\uDC7F', 'Senegal': '\\uD83C\\uDDF8\\uD83C\\uDDF3', 'Serbia': '\\uD83C\\uDDF7\\uD83C\\uDDF8', 'Sierra Leone': '\\uD83C\\uDDF8\\uD83C\\uDDF1',\n  'Slovakia': '\\uD83C\\uDDF8\\uD83C\\uDDF0', 'Slovenia': '\\uD83C\\uDDF8\\uD83C\\uDDEE', 'Somalia': '\\uD83C\\uDDF8\\uD83C\\uDDF4', 'South Africa': '\\uD83C\\uDDFF\\uD83C\\uDDE6', 'South Korea': '\\uD83C\\uDDF0\\uD83C\\uDDF7',\n  'Spain': '\\uD83C\\uDDEA\\uD83C\\uDDF8', 'Sudan': '\\uD83C\\uDDF8\\uD83C\\uDDE9', 'Sweden': '\\uD83C\\uDDF8\\uD83C\\uDDEA', 'Switzerland': '\\uD83C\\uDDE8\\uD83C\\uDDED', 'Syria': '\\uD83C\\uDDF8\\uD83C\\uDDFE',\n  'Tanzania': '\\uD83C\\uDDF9\\uD83C\\uDDFF', 'Thailand': '\\uD83C\\uDDF9\\uD83C\\uDDED', 'Togo': '\\uD83C\\uDDF9\\uD83C\\uDDEC', 'Trinidad and Tobago': '\\uD83C\\uDDF9\\uD83C\\uDDF9', 'Tunisia': '\\uD83C\\uDDF9\\uD83C\\uDDF3',\n  'Turkey': '\\uD83C\\uDDF9\\uD83C\\uDDF7', 'Turkmenistan': '\\uD83C\\uDDF9\\uD83C\\uDDF2', 'Uganda': '\\uD83C\\uDDFA\\uD83C\\uDDEC', 'Ukraine': '\\uD83C\\uDDFA\\uD83C\\uDDE6', 'United Arab Emirates': '\\uD83C\\uDDE6\\uD83C\\uDDEA',\n  'United States': '\\uD83C\\uDDFA\\uD83C\\uDDF8', 'Uruguay': '\\uD83C\\uDDFA\\uD83C\\uDDFE', 'Uzbekistan': '\\uD83C\\uDDFA\\uD83C\\uDDFF', 'Venezuela': '\\uD83C\\uDDFB\\uD83C\\uDDEA', 'Vietnam': '\\uD83C\\uDDFB\\uD83C\\uDDF3',\n  'Wales': '\\uD83C\\uDFF4\\uDB40\\uDC67\\uDB40\\uDC62\\uDB40\\uDC77\\uDB40\\uDC6C\\uDB40\\uDC73\\uDB40\\uDC7F', 'Yemen': '\\uD83C\\uDDFE\\uD83C\\uDDEA', 'Zambia': '\\uD83C\\uDDFF\\uD83C\\uDDF2', 'Zimbabwe': '\\uD83C\\uDDFF\\uD83C\\uDDFC',\n  'Dominican Republic': '\\uD83C\\uDDE9\\uD83C\\uDDF4', 'Korea': '\\uD83C\\uDDF0\\uD83C\\uDDF7'\n};\n\nconst getFlag = name => flags[name] || '\\uD83C\\uDFC1';\n\nconst hasWorldCup = fixtures.some(m => m.league.id === 1);\nconst header = hasWorldCup ? '\\uD83C\\uDFC6 FIFA WORLD CUP 2026 \\u26BD' : '\\u26BD INTERNATIONAL FRIENDLIES';\n\nconst today = new Date();\nconst dateStr = today.toLocaleDateString('en-US', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',\n  timeZone: 'America/Costa_Rica'\n});\n\nlet msg = `*${header}*\\n_${dateStr}_\\n\\n`;\n\nfor (const match of fixtures) {\n  const utcDate = new Date(match.fixture.date);\n  const crTime = utcDate.toLocaleTimeString('en-US', {\n    hour: '2-digit', minute: '2-digit', hour12: true,\n    timeZone: 'America/Costa_Rica'\n  });\n  const home = match.teams.home.name;\n  const away = match.teams.away.name;\n  msg += `${crTime} | ${getFlag(home)}${getFlag(away)} ${home} vs ${away}\\n`;\n}\n\nmsg += `\\n_\\uD83D\\uDCAC Reply to this message (e.g. \\\"OK\\\") to keep receiving the daily report._`;\n\nreturn recipients.map(to => ({ json: { message: msg, to } }));\n"
+        "jsCode": "const crNow = DateTime.now().setZone('America/Costa_Rica');\nconst crDayStartMs = crNow.startOf('day').toMillis();\nconst crDayEndMs   = crNow.endOf('day').toMillis();\n\nconst isYouth = name => /\\bU\\d{2}\\b/i.test(name);\nconst VALID_LEAGUES = [1, 10];\nconst VALID_STATUSES = ['NS', 'TBD'];\n\nconst WC2026_QUALIFIERS = new Set([\n  'Australia','Iran','Japan','Jordan','South Korea','Korea Republic',\n  'Qatar','Saudi Arabia','Uzbekistan','Iraq',\n  'Algeria','Cape Verde','Cabo Verde','Ivory Coast',\"Cote d'Ivoire\",'Egypt',\n  'Ghana','Morocco','Senegal','South Africa','Tunisia','Congo DR','DR Congo',\n  'United States','USA','Canada','Mexico','Cura\\u00e7ao','Curacao','Haiti','Panama',\n  'Argentina','Brazil','Colombia','Ecuador','Paraguay','Uruguay',\n  'New Zealand',\n  'England','France','Croatia','Norway','Portugal','Germany',\n  'Netherlands','Austria','Belgium','Scotland','Spain','Switzerland',\n  'Sweden','Turkey','T\\u00fcrkiye','Bosnia','Bosnia and Herzegovina',\n  'Czech Republic','Czechia','Iceland',\n]);\n\nconst recipients = [\n  '+10000000001',\n  '+10000000002',\n  '+10000000003',\n  '+10000000004',\n  '+10000000005'\n];\n\n// Primary: today CR date (UTC today)\nconst primaryFixtures = $(\"Fetch Today's Matches\").first().json.response || [];\n// Secondary: next UTC day â€” covers CR evening 6 pmâ€“midnight\nconst secondaryFixtures = $input.first().json.response || [];\n\n// Combine, deduplicate, filter to CR calendar day\nconst seenIds = new Set();\nconst crDayFixtures = [...primaryFixtures, ...secondaryFixtures]\n  .filter(f => {\n    if (seenIds.has(f.fixture.id)) return false;\n    seenIds.add(f.fixture.id);\n    const ts = new Date(f.fixture.date).getTime();\n    return ts >= crDayStartMs && ts <= crDayEndMs;\n  });\n\n// Business filters\nconst fixtures = crDayFixtures.filter(m => {\n  if (!VALID_LEAGUES.includes(m.league.id)) return false;\n  if (!VALID_STATUSES.includes(m.fixture.status.short)) return false;\n  if (isYouth(m.teams.home.name) || isYouth(m.teams.away.name)) return false;\n  if (!WC2026_QUALIFIERS.has(m.teams.home.name) && !WC2026_QUALIFIERS.has(m.teams.away.name)) return false;\n  return true;\n});\n\nif (fixtures.length === 0) {\n  return recipients.map(to => ({ json: { message: '\\uD83C\\uDF0D No matches involving World Cup 2026 teams scheduled for today.\\n\\n_\\uD83D\\uDCAC Reply to this message (e.g. \"OK\") to keep receiving the daily report._', to } }));\n}\n\nconst flags = {\n  'Afghanistan': '\\uD83C\\uDDE6\\uD83C\\uDDEB', 'Albania': '\\uD83C\\uDDE6\\uD83C\\uDDF1', 'Algeria': '\\uD83C\\uDDE9\\uD83C\\uDDFF', 'Andorra': '\\uD83C\\uDDE6\\uD83C\\uDDE9', 'Angola': '\\uD83C\\uDDE6\\uD83C\\uDDF4',\n  'Argentina': '\\uD83C\\uDDE6\\uD83C\\uDDF7', 'Armenia': '\\uD83C\\uDDE6\\uD83C\\uDDF2', 'Australia': '\\uD83C\\uDDE6\\uD83C\\uDDFA', 'Austria': '\\uD83C\\uDDE6\\uD83C\\uDDF9', 'Azerbaijan': '\\uD83C\\uDDE6\\uD83C\\uDDFF',\n  'Bahrain': '\\uD83C\\uDDE7\\uD83C\\uDDED', 'Bangladesh': '\\uD83C\\uDDE7\\uD83C\\uDDE9', 'Belarus': '\\uD83C\\uDDE7\\uD83C\\uDDFE', 'Belgium': '\\uD83C\\uDDE7\\uD83C\\uDDEA', 'Benin': '\\uD83C\\uDDE7\\uD83C\\uDDEF',\n  'Bolivia': '\\uD83C\\uDDE7\\uD83C\\uDDF4', 'Bosnia': '\\uD83C\\uDDE7\\uD83C\\uDDE6', 'Botswana': '\\uD83C\\uDDE7\\uD83C\\uDDFC', 'Brazil': '\\uD83C\\uDDE7\\uD83C\\uDDF7', 'British Virgin Islands': '\\uD83C\\uDDFB\\uD83C\\uDDEC',\n  'Bulgaria': '\\uD83C\\uDDE7\\uD83C\\uDDEC', 'Burkina Faso': '\\uD83C\\uDDE7\\uD83C\\uDDEB', 'Burundi': '\\uD83C\\uDDE7\\uD83C\\uDDEE', 'Cambodia': '\\uD83C\\uDDF0\\uD83C\\uDDED', 'Cameroon': '\\uD83C\\uDDE8\\uD83C\\uDDF2',\n  'Canada': '\\uD83C\\uDDE8\\uD83C\\uDDE6', 'Cape Verde': '\\uD83C\\uDDE8\\uD83C\\uDDFB', 'Chile': '\\uD83C\\uDDE8\\uD83C\\uDDF1', 'China': '\\uD83C\\uDDE8\\uD83C\\uDDF3', 'Colombia': '\\uD83C\\uDDE8\\uD83C\\uDDF4',\n  'Congo': '\\uD83C\\uDDE8\\uD83C\\uDDEC', 'Congo DR': '\\uD83C\\uDDE8\\uD83C\\uDDE9', 'Costa Rica': '\\uD83C\\uDDE8\\uD83C\\uDDF7', 'Croatia': '\\uD83C\\uDDED\\uD83C\\uDDF7', 'Cuba': '\\uD83C\\uDDE8\\uD83C\\uDDFA',\n  'Cyprus': '\\uD83C\\uDDE8\\uD83C\\uDDFE', 'Czech Republic': '\\uD83C\\uDDE8\\uD83C\\uDDFF', 'Denmark': '\\uD83C\\uDDE9\\uD83C\\uDDF0', 'Ecuador': '\\uD83C\\uDDEA\\uD83C\\uDDE8', 'Egypt': '\\uD83C\\uDDEA\\uD83C\\uDDEC',\n  'El Salvador': '\\uD83C\\uDDF8\\uD83C\\uDDFB', 'England': '\\uD83C\\uDFF4\\uDB40\\uDC67\\uDB40\\uDC62\\uDB40\\uDC65\\uDB40\\uDC6E\\uDB40\\uDC67\\uDB40\\uDC7F', 'Estonia': '\\uD83C\\uDDEA\\uD83C\\uDDEA', 'Ethiopia': '\\uD83C\\uDDEA\\uD83C\\uDDF9', 'Finland': '\\uD83C\\uDDEB\\uD83C\\uDDEE',\n  'France': '\\uD83C\\uDDEB\\uD83C\\uDDF7', 'Gabon': '\\uD83C\\uDDEC\\uD83C\\uDDE6', 'Gambia': '\\uD83C\\uDDEC\\uD83C\\uDDF2', 'Georgia': '\\uD83C\\uDDEC\\uD83C\\uDDEA', 'Germany': '\\uD83C\\uDDE9\\uD83C\\uDDEA',\n  'Ghana': '\\uD83C\\uDDEC\\uD83C\\uDDED', 'Gibraltar': '\\uD83C\\uDDEC\\uD83C\\uDDEE', 'Greece': '\\uD83C\\uDDEC\\uD83C\\uDDF7', 'Guatemala': '\\uD83C\\uDDEC\\uD83C\\uDDF9', 'Guinea': '\\uD83C\\uDDEC\\uD83C\\uDDF3',\n  'Guinea-Bissau': '\\uD83C\\uDDEC\\uD83C\\uDDFC', 'Guam': '\\uD83C\\uDDEC\\uD83C\\uDDFA', 'Haiti': '\\uD83C\\uDDED\\uD83C\\uDDF9', 'Honduras': '\\uD83C\\uDDED\\uD83C\\uDDF3', 'Hungary': '\\uD83C\\uDDED\\uD83C\\uDDFA',\n  'Iceland': '\\uD83C\\uDDEE\\uD83C\\uDDF8', 'India': '\\uD83C\\uDDEE\\uD83C\\uDDF3', 'Indonesia': '\\uD83C\\uDDEE\\uD83C\\uDDE9', 'Iran': '\\uD83C\\uDDEE\\uD83C\\uDDF7', 'Iraq': '\\uD83C\\uDDEE\\uD83C\\uDDF6',\n  'Ireland': '\\uD83C\\uDDEE\\uD83C\\uDDEA', 'Israel': '\\uD83C\\uDDEE\\uD83C\\uDDF1', 'Italy': '\\uD83C\\uDDEE\\uD83C\\uDDF9', 'Ivory Coast': '\\uD83C\\uDDE8\\uD83C\\uDDEE', \"Cote d'Ivoire\": '\\uD83C\\uDDE8\\uD83C\\uDDEE',\n  'Jamaica': '\\uD83C\\uDDEF\\uD83C\\uDDF2', 'Japan': '\\uD83C\\uDDEF\\uD83C\\uDDF5', 'Jordan': '\\uD83C\\uDDEF\\uD83C\\uDDF4', 'Kazakhstan': '\\uD83C\\uDDF0\\uD83C\\uDDFF', 'Kenya': '\\uD83C\\uDDF0\\uD83C\\uDDEA',\n  'Kosovo': '\\uD83C\\uDDFD\\uD83C\\uDDF0', 'Kuwait': '\\uD83C\\uDDF0\\uD83C\\uDDFC', 'Kyrgyzstan': '\\uD83C\\uDDF0\\uD83C\\uDDEC', 'Latvia': '\\uD83C\\uDDF1\\uD83C\\uDDFB', 'Lebanon': '\\uD83C\\uDDF1\\uD83C\\uDDE7',\n  'Liberia': '\\uD83C\\uDDF1\\uD83C\\uDDF7', 'Libya': '\\uD83C\\uDDF1\\uD83C\\uDDFE', 'Lithuania': '\\uD83C\\uDDF1\\uD83C\\uDDF9', 'Luxembourg': '\\uD83C\\uDDF1\\uD83C\\uDDFA', 'Madagascar': '\\uD83C\\uDDF2\\uD83C\\uDDEC',\n  'Malawi': '\\uD83C\\uDDF2\\uD83C\\uDDFC', 'Malaysia': '\\uD83C\\uDDF2\\uD83C\\uDDFE', 'Mali': '\\uD83C\\uDDF2\\uD83C\\uDDF1', 'Malta': '\\uD83C\\uDDF2\\uD83C\\uDDF9', 'Mauritania': '\\uD83C\\uDDF2\\uD83C\\uDDF7',\n  'Mexico': '\\uD83C\\uDDF2\\uD83C\\uDDFD', 'Moldova': '\\uD83C\\uDDF2\\uD83C\\uDDE9', 'Montenegro': '\\uD83C\\uDDF2\\uD83C\\uDDEA', 'Morocco': '\\uD83C\\uDDF2\\uD83C\\uDDE6', 'Mozambique': '\\uD83C\\uDDF2\\uD83C\\uDDFF',\n  'Myanmar': '\\uD83C\\uDDF2\\uD83C\\uDDF2', 'Namibia': '\\uD83C\\uDDF3\\uD83C\\uDDE6', 'Nepal': '\\uD83C\\uDDF3\\uD83C\\uDDF5', 'Netherlands': '\\uD83C\\uDDF3\\uD83C\\uDDF1', 'New Zealand': '\\uD83C\\uDDF3\\uD83C\\uDDFF',\n  'Nicaragua': '\\uD83C\\uDDF3\\uD83C\\uDDEE', 'Niger': '\\uD83C\\uDDF3\\uD83C\\uDDEA', 'Nigeria': '\\uD83C\\uDDF3\\uD83C\\uDDEC', 'North Korea': '\\uD83C\\uDDF0\\uD83C\\uDDF5', 'North Macedonia': '\\uD83C\\uDDF2\\uD83C\\uDDF0',\n  'Northern Ireland': '\\uD83C\\uDDEC\\uD83C\\uDDE7', 'Norway': '\\uD83C\\uDDF3\\uD83C\\uDDF4', 'Oman': '\\uD83C\\uDDF4\\uD83C\\uDDF2', 'Pakistan': '\\uD83C\\uDDF5\\uD83C\\uDDF0', 'Palestine': '\\uD83C\\uDDF5\\uD83C\\uDDF8',\n  'Panama': '\\uD83C\\uDDF5\\uD83C\\uDDE6', 'Paraguay': '\\uD83C\\uDDF5\\uD83C\\uDDFE', 'Peru': '\\uD83C\\uDDF5\\uD83C\\uDDEA', 'Philippines': '\\uD83C\\uDDF5\\uD83C\\uDDED', 'Poland': '\\uD83C\\uDDF5\\uD83C\\uDDF1',\n  'Portugal': '\\uD83C\\uDDF5\\uD83C\\uDDF9', 'Qatar': '\\uD83C\\uDDF6\\uD83C\\uDDE6', 'Romania': '\\uD83C\\uDDF7\\uD83C\\uDDF4', 'Russia': '\\uD83C\\uDDF7\\uD83C\\uDDFA', 'Rwanda': '\\uD83C\\uDDF7\\uD83C\\uDDFC',\n  'Saudi Arabia': '\\uD83C\\uDDF8\\uD83C\\uDDE6', 'Scotland': '\\uD83C\\uDFF4\\uDB40\\uDC67\\uDB40\\uDC62\\uDB40\\uDC73\\uDB40\\uDC63\\uDB40\\uDC74\\uDB40\\uDC7F', 'Senegal': '\\uD83C\\uDDF8\\uD83C\\uDDF3', 'Serbia': '\\uD83C\\uDDF7\\uD83C\\uDDF8', 'Sierra Leone': '\\uD83C\\uDDF8\\uD83C\\uDDF1',\n  'Slovakia': '\\uD83C\\uDDF8\\uD83C\\uDDF0', 'Slovenia': '\\uD83C\\uDDF8\\uD83C\\uDDEE', 'Somalia': '\\uD83C\\uDDF8\\uD83C\\uDDF4', 'South Africa': '\\uD83C\\uDDFF\\uD83C\\uDDE6', 'South Korea': '\\uD83C\\uDDF0\\uD83C\\uDDF7',\n  'Spain': '\\uD83C\\uDDEA\\uD83C\\uDDF8', 'Sudan': '\\uD83C\\uDDF8\\uD83C\\uDDE9', 'Sweden': '\\uD83C\\uDDF8\\uD83C\\uDDEA', 'Switzerland': '\\uD83C\\uDDE8\\uD83C\\uDDED', 'Syria': '\\uD83C\\uDDF8\\uD83C\\uDDFE',\n  'Tanzania': '\\uD83C\\uDDF9\\uD83C\\uDDFF', 'Thailand': '\\uD83C\\uDDF9\\uD83C\\uDDED', 'Togo': '\\uD83C\\uDDF9\\uD83C\\uDDEC', 'Trinidad and Tobago': '\\uD83C\\uDDF9\\uD83C\\uDDF9', 'Tunisia': '\\uD83C\\uDDF9\\uD83C\\uDDF3',\n  'Turkey': '\\uD83C\\uDDF9\\uD83C\\uDDF7', 'Turkmenistan': '\\uD83C\\uDDF9\\uD83C\\uDDF2', 'Uganda': '\\uD83C\\uDDFA\\uD83C\\uDDEC', 'Ukraine': '\\uD83C\\uDDFA\\uD83C\\uDDE6', 'United Arab Emirates': '\\uD83C\\uDDE6\\uD83C\\uDDEA',\n  'United States': '\\uD83C\\uDDFA\\uD83C\\uDDF8', 'Uruguay': '\\uD83C\\uDDFA\\uD83C\\uDDFE', 'Uzbekistan': '\\uD83C\\uDDFA\\uD83C\\uDDFF', 'Venezuela': '\\uD83C\\uDDFB\\uD83C\\uDDEA', 'Vietnam': '\\uD83C\\uDDFB\\uD83C\\uDDF3',\n  'Wales': '\\uD83C\\uDFF4\\uDB40\\uDC67\\uDB40\\uDC62\\uDB40\\uDC77\\uDB40\\uDC6C\\uDB40\\uDC73\\uDB40\\uDC7F', 'Yemen': '\\uD83C\\uDDFE\\uD83C\\uDDEA', 'Zambia': '\\uD83C\\uDDFF\\uD83C\\uDDF2', 'Zimbabwe': '\\uD83C\\uDDFF\\uD83C\\uDDFC',\n  'Dominican Republic': '\\uD83C\\uDDE9\\uD83C\\uDDF4', 'Korea': '\\uD83C\\uDDF0\\uD83C\\uDDF7'\n};\n\nconst getFlag = name => flags[name] || '\\uD83C\\uDFC1';\n\nconst hasWorldCup = fixtures.some(m => m.league.id === 1);\nconst header = hasWorldCup ? '\\uD83C\\uDFC6 FIFA WORLD CUP 2026 \\u26bd' : '\\u26BD INTERNATIONAL FRIENDLIES';\n\nconst today = new Date();\nconst dateStr = today.toLocaleDateString('en-US', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',\n  timeZone: 'America/Costa_Rica'\n});\n\nlet msg = `*${header}*\\n_${dateStr}_\\n\\n`;\n\nfor (const match of fixtures) {\n  const utcDate = new Date(match.fixture.date);\n  const crTime = utcDate.toLocaleTimeString('en-US', {\n    hour: '2-digit', minute: '2-digit', hour12: true,\n    timeZone: 'America/Costa_Rica'\n  });\n  const home = match.teams.home.name;\n  const away = match.teams.away.name;\n  msg += `${crTime} | ${getFlag(home)}${getFlag(away)} ${home} vs ${away}\\n`;\n}\n\nmsg += `\\n_\\uD83D\\uDCAC Reply to this message (e.g. \"OK\") to keep receiving the daily report._`;\n\nreturn recipients.map(to => ({ json: { message: msg, to } }));\n"
       },
       "id": "ff0c4070-fa1d-45f0-a456-5eb5b3c7361e",
       "name": "Format Match Summary",
@@ -84,6 +86,7 @@
       ],
       "credentials": {
         "twilioApi": {
+          "id": "",
           "name": "Twilio account"
         }
       }
@@ -142,7 +145,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const crNow = DateTime.now().setZone('America/Costa_Rica');\nconst crDayStartMs = crNow.startOf('day').toMillis();\nconst crDayEndMs   = crNow.endOf('day').toMillis();\n\nconst isYouth = name => /\\bU\\d{2}\\b/i.test(name);\nconst VALID_LEAGUES = [1, 10];\nconst FINISHED_STATUSES = ['FT', 'AET', 'PEN'];\nconst CANCELLED_STATUSES = ['CANC', 'PST', 'ABD'];\n\nconst WC2026_QUALIFIERS = new Set([\n  'Australia','Iran','Japan','Jordan','South Korea','Korea Republic',\n  'Qatar','Saudi Arabia','Uzbekistan','Iraq',\n  'Algeria','Cape Verde','Cabo Verde','Ivory Coast',\"Cote d'Ivoire\",'Egypt',\n  'Ghana','Morocco','Senegal','South Africa','Tunisia','Congo DR','DR Congo',\n  'United States','USA','Canada','Mexico','Curaçao','Curacao','Haiti','Panama',\n  'Argentina','Brazil','Colombia','Ecuador','Paraguay','Uruguay',\n  'New Zealand',\n  'England','France','Croatia','Norway','Portugal','Germany',\n  'Netherlands','Austria','Belgium','Scotland','Spain','Switzerland',\n  'Sweden','Turkey','Türkiye','Bosnia','Bosnia and Herzegovina',\n  'Czech Republic','Czechia','Iceland',\n]);\n\nconst recipients = [\n  '+10000000001',\n  '+10000000002',\n  '+10000000003',\n  '+10000000004',\n  '+10000000005'\n];\n\n// Primary: today CR date (UTC today)\nconst primaryFixtures = $(\"Fetch Today's Results\").first().json.response || [];\n// Secondary: next UTC day – covers CR evening 6 pm–midnight\nconst secondaryFixtures = $input.first().json.response || [];\n\n// Combine, deduplicate, filter to CR calendar day\nconst seenIds = new Set();\nconst crDayFixtures = [...primaryFixtures, ...secondaryFixtures]\n  .filter(f => {\n    if (seenIds.has(f.fixture.id)) return false;\n    seenIds.add(f.fixture.id);\n    const ts = new Date(f.fixture.date).getTime();\n    return ts >= crDayStartMs && ts <= crDayEndMs;\n  });\n\n// Business filters\nconst fixtures = crDayFixtures.filter(m => {\n  if (!VALID_LEAGUES.includes(m.league.id)) return false;\n  if (isYouth(m.teams.home.name) || isYouth(m.teams.away.name)) return false;\n  if (!WC2026_QUALIFIERS.has(m.teams.home.name) && !WC2026_QUALIFIERS.has(m.teams.away.name)) return false;\n  return true;\n});\n\nif (fixtures.length === 0) {\n  return recipients.map(to => ({\n    json: { message: '🌍 No matches involving World Cup 2026 teams were played today.', to }\n  }));\n}\n\nconst flags = {\n  'Afghanistan': '🇦🇫', 'Albania': '🇦🇱', 'Algeria': '🇩🇿', 'Andorra': '🇦🇩', 'Angola': '🇦🇴',\n  'Argentina': '🇦🇷', 'Armenia': '🇦🇲', 'Australia': '🇦🇺', 'Austria': '🇦🇹', 'Azerbaijan': '🇦🇿',\n  'Bahrain': '🇧🇭', 'Bangladesh': '🇧🇩', 'Belarus': '🇧🇾', 'Belgium': '🇧🇪', 'Benin': '🇧🇯',\n  'Bolivia': '🇧🇴', 'Bosnia': '🇧🇦', 'Botswana': '🇧🇼', 'Brazil': '🇧🇷', 'British Virgin Islands': '🇻🇬',\n  'Bulgaria': '🇧🇬', 'Burkina Faso': '🇧🇫', 'Burundi': '🇧🇮', 'Cambodia': '🇰🇭', 'Cameroon': '🇨🇲',\n  'Canada': '🇨🇦', 'Cape Verde': '🇨🇻', 'Chile': '🇨🇱', 'China': '🇨🇳', 'Colombia': '🇨🇴',\n  'Congo': '🇨🇬', 'Congo DR': '🇨🇩', 'Costa Rica': '🇨🇷', 'Croatia': '🇭🇷', 'Cuba': '🇨🇺',\n  'Cyprus': '🇨🇾', 'Czech Republic': '🇨🇿', 'Denmark': '🇩🇰', 'Ecuador': '🇪🇨', 'Egypt': '🇪🇬',\n  'El Salvador': '🇸🇻', 'England': '\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67\uDB40\uDC7F', 'Estonia': '🇪🇪', 'Ethiopia': '🇪🇹', 'Finland': '🇫🇮',\n  'France': '🇫🇷', 'Gabon': '🇬🇦', 'Gambia': '🇬🇲', 'Georgia': '🇬🇪', 'Germany': '🇩🇪',\n  'Ghana': '🇬🇭', 'Gibraltar': '🇬🇮', 'Greece': '🇬🇷', 'Guatemala': '🇬🇹', 'Guinea': '🇬🇳',\n  'Guinea-Bissau': '🇬🇼', 'Guam': '🇬🇺', 'Haiti': '🇭🇹', 'Honduras': '🇭🇳', 'Hungary': '🇭🇺',\n  'Iceland': '🇮🇸', 'India': '🇮🇳', 'Indonesia': '🇮🇩', 'Iran': '🇮🇷', 'Iraq': '🇮🇶',\n  'Ireland': '🇮🇪', 'Israel': '🇮🇱', 'Italy': '🇮🇹', 'Ivory Coast': '🇨🇮', \"Cote d'Ivoire\": '🇨🇮',\n  'Jamaica': '🇯🇲', 'Japan': '🇯🇵', 'Jordan': '🇯🇴', 'Kazakhstan': '🇰🇿', 'Kenya': '🇰🇪',\n  'Kosovo': '🇽🇰', 'Kuwait': '🇰🇼', 'Kyrgyzstan': '🇰🇬', 'Latvia': '🇱🇻', 'Lebanon': '🇱🇧',\n  'Liberia': '🇱🇷', 'Libya': '🇱🇾', 'Lithuania': '🇱🇹', 'Luxembourg': '🇱🇺', 'Madagascar': '🇲🇬',\n  'Malawi': '🇲🇼', 'Malaysia': '🇲🇾', 'Mali': '🇲🇱', 'Malta': '🇲🇹', 'Mauritania': '🇲🇷',\n  'Mexico': '🇲🇽', 'Moldova': '🇲🇩', 'Montenegro': '🇲🇪', 'Morocco': '🇲🇦', 'Mozambique': '🇲🇿',\n  'Myanmar': '🇲🇲', 'Namibia': '🇳🇦', 'Nepal': '🇳🇵', 'Netherlands': '🇳🇱', 'New Zealand': '🇳🇿',\n  'Nicaragua': '🇳🇮', 'Niger': '🇳🇪', 'Nigeria': '🇳🇬', 'North Korea': '🇰🇵', 'North Macedonia': '🇲🇰',\n  'Northern Ireland': '🇬🇧', 'Norway': '🇳🇴', 'Oman': '🇴🇲', 'Pakistan': '🇵🇰', 'Palestine': '🇵🇸',\n  'Panama': '🇵🇦', 'Paraguay': '🇵🇾', 'Peru': '🇵🇪', 'Philippines': '🇵🇭', 'Poland': '🇵🇱',\n  'Portugal': '🇵🇹', 'Qatar': '🇶🇦', 'Romania': '🇷🇴', 'Russia': '🇷🇺', 'Rwanda': '🇷🇼',\n  'Saudi Arabia': '🇸🇦', 'Scotland': '\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74\uDB40\uDC7F', 'Senegal': '🇸🇳', 'Serbia': '🇷🇸', 'Sierra Leone': '🇸🇱',\n  'Slovakia': '🇸🇰', 'Slovenia': '🇸🇮', 'Somalia': '🇸🇴', 'South Africa': '🇿🇦', 'South Korea': '🇰🇷',\n  'Spain': '🇪🇸', 'Sudan': '🇸🇩', 'Sweden': '🇸🇪', 'Switzerland': '🇨🇭', 'Syria': '🇸🇾',\n  'Tanzania': '🇹🇿', 'Thailand': '🇹🇭', 'Togo': '🇹🇬', 'Trinidad and Tobago': '🇹🇹', 'Tunisia': '🇹🇳',\n  'Turkey': '🇹🇷', 'Turkmenistan': '🇹🇲', 'Uganda': '🇺🇬', 'Ukraine': '🇺🇦', 'United Arab Emirates': '🇦🇪',\n  'United States': '🇺🇸', 'Uruguay': '🇺🇾', 'Uzbekistan': '🇺🇿', 'Venezuela': '🇻🇪', 'Vietnam': '🇻🇳',\n  'Wales': '\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62\uDB40\uDC77\uDB40\uDC6C\uDB40\uDC73\uDB40\uDC7F', 'Yemen': '🇾🇪', 'Zambia': '🇿🇲', 'Zimbabwe': '🇿🇼',\n  'Dominican Republic': '🇩🇴', 'Korea': '🇰🇷'\n};\n\nconst getFlag = name => flags[name] || '🚩';\n\nconst API_KEY = 'YOUR_API_FOOTBALL_KEY';\n\nconst fetchScorers = async (match) => {\n  const homeId = match.teams.home.id;\n  const homeScorers = [];\n  const awayScorers = [];\n  let events = [];\n  try {\n    const res = await this.helpers.httpRequest({\n      method: 'GET',\n      url: `https://v3.football.api-sports.io/fixtures/events?fixture=${match.fixture.id}`,\n      headers: { 'x-apisports-key': API_KEY },\n      json: true,\n    });\n    events = (res && res.response) || [];\n  } catch (e) {\n    return { homeScorers, awayScorers };\n  }\n  const goals = events.filter(e => e && e.type === 'Goal' && e.detail !== 'Missed Penalty');\n  goals.sort((a, b) => {\n    const ae = a.time.elapsed || 0, be = b.time.elapsed || 0;\n    if (ae !== be) return ae - be;\n    return (a.time.extra || 0) - (b.time.extra || 0);\n  });\n  for (const e of goals) {\n    const player = (e.player && e.player.name) || 'Unknown';\n    const el = e.time.elapsed;\n    const extra = e.time.extra;\n    const minute = `${el != null ? el : ''}${extra ? '+' + extra : ''}'`;\n    const isPen = e.detail === 'Penalty';\n    const isOwn = e.detail === 'Own Goal';\n    const tag = isPen ? ' (P)' : (isOwn ? ' (OG)' : '');\n    const label = `${player} ${minute}${tag}`;\n    const teamId = e.team && e.team.id;\n    let creditHome = teamId === homeId;\n    if (isOwn) creditHome = !creditHome;\n    (creditHome ? homeScorers : awayScorers).push(label);\n  }\n  return { homeScorers, awayScorers };\n};\n\nconst header = '*🏆 FIFA WORLD CUP 2026 ⚽*\\n*TODAY RESULTS*';\n\nconst matchBlocks = [];\nfor (const match of fixtures) {\n  const home = match.teams.home.name;\n  const away = match.teams.away.name;\n  const status = match.fixture.status.short;\n  const homeGoals = match.goals.home;\n  const awayGoals = match.goals.away;\n\n  let scoreText;\n  if (FINISHED_STATUSES.includes(status)) {\n    const suffix = status === 'AET' ? ' AET' : status === 'PEN' ? ' PEN' : '';\n    scoreText = `${homeGoals}-${awayGoals}${suffix}`;\n  } else if (status === 'NS') {\n    scoreText = 'Not started';\n  } else if (status === 'SUSP') {\n    scoreText = 'Suspended';\n  } else if (CANCELLED_STATUSES.includes(status)) {\n    scoreText = status === 'PST' ? 'Postponed' : 'Cancelled';\n  } else {\n    scoreText = 'In Progress';\n  }\n\n  let block = `${getFlag(home)} ${home} (${scoreText}) ${away} ${getFlag(away)}`;\n\n  if (FINISHED_STATUSES.includes(status) && ((homeGoals || 0) + (awayGoals || 0)) > 0) {\n    const { homeScorers, awayScorers } = await fetchScorers(match);\n    const parts = [];\n    if (homeScorers.length) parts.push(homeScorers.join('\\n'));\n    if (awayScorers.length) parts.push(awayScorers.join('\\n'));\n    if (parts.length) block += `\\n${parts.join('\\n-\\n')}`;\n  }\n\n  matchBlocks.push(block);\n}\n\nconst MAX_CHARS = 1500;\nconst chunks = [];\nlet current = `${header}\\n\\n${matchBlocks[0] || ''}`;\n\nfor (let i = 1; i < matchBlocks.length; i++) {\n  const block = matchBlocks[i];\n  const testMsg = current + '\\n\\n' + block;\n  if (testMsg.length > MAX_CHARS) {\n    chunks.push(current);\n    current = block;\n  } else {\n    current = testMsg;\n  }\n}\nif (current) chunks.push(current);\n\nconst output = [];\nfor (const to of recipients) {\n  for (const message of chunks) {\n    output.push({ json: { message, to } });\n  }\n}\nreturn output;"
+        "jsCode": "const crNow = DateTime.now().setZone('America/Costa_Rica');\nconst crDayStartMs = crNow.startOf('day').toMillis();\nconst crDayEndMs   = crNow.endOf('day').toMillis();\n\nconst isYouth = name => /\\bU\\d{2}\\b/i.test(name);\nconst VALID_LEAGUES = [1, 10];\nconst FINISHED_STATUSES = ['FT', 'AET', 'PEN'];\nconst CANCELLED_STATUSES = ['CANC', 'PST', 'ABD'];\n\nconst WC2026_QUALIFIERS = new Set([\n  'Australia','Iran','Japan','Jordan','South Korea','Korea Republic',\n  'Qatar','Saudi Arabia','Uzbekistan','Iraq',\n  'Algeria','Cape Verde','Cabo Verde','Ivory Coast',\"Cote d'Ivoire\",'Egypt',\n  'Ghana','Morocco','Senegal','South Africa','Tunisia','Congo DR','DR Congo',\n  'United States','USA','Canada','Mexico','Curaçao','Curacao','Haiti','Panama',\n  'Argentina','Brazil','Colombia','Ecuador','Paraguay','Uruguay',\n  'New Zealand',\n  'England','France','Croatia','Norway','Portugal','Germany',\n  'Netherlands','Austria','Belgium','Scotland','Spain','Switzerland',\n  'Sweden','Turkey','Türkiye','Bosnia','Bosnia and Herzegovina',\n  'Czech Republic','Czechia','Iceland',\n]);\n\nconst recipients = [\n  '+10000000001',\n  '+10000000002',\n  '+10000000003',\n  '+10000000004',\n  '+10000000005'\n];\n\nconst primaryFixtures = $(\"Fetch Today's Results\").first().json.response || [];\nconst secondaryFixtures = $input.first().json.response || [];\n\nconst seenIds = new Set();\nconst crDayFixtures = [...primaryFixtures, ...secondaryFixtures]\n  .filter(f => {\n    if (seenIds.has(f.fixture.id)) return false;\n    seenIds.add(f.fixture.id);\n    const ts = new Date(f.fixture.date).getTime();\n    return ts >= crDayStartMs && ts <= crDayEndMs;\n  });\n\nconst fixtures = crDayFixtures.filter(m => {\n  if (!VALID_LEAGUES.includes(m.league.id)) return false;\n  if (isYouth(m.teams.home.name) || isYouth(m.teams.away.name)) return false;\n  if (!WC2026_QUALIFIERS.has(m.teams.home.name) && !WC2026_QUALIFIERS.has(m.teams.away.name)) return false;\n  return true;\n});\n\nif (fixtures.length === 0) {\n  return recipients.map(to => ({\n    json: { message: '🌍 No matches involving World Cup 2026 teams were played today.', to }\n  }));\n}\n\nconst flags = {\n  'Afghanistan': '🇦🇫', 'Albania': '🇦🇱', 'Algeria': '🇩🇿', 'Andorra': '🇦🇩', 'Angola': '🇦🇴',\n  'Argentina': '🇦🇷', 'Armenia': '🇦🇲', 'Australia': '🇦🇺', 'Austria': '🇦🇹', 'Azerbaijan': '🇦🇿',\n  'Bahrain': '🇧🇭', 'Bangladesh': '🇧🇩', 'Belarus': '🇧🇾', 'Belgium': '🇧🇪', 'Benin': '🇧🇯',\n  'Bolivia': '🇧🇴', 'Bosnia': '🇧🇦', 'Botswana': '🇧🇼', 'Brazil': '🇧🇷', 'British Virgin Islands': '🇻🇬',\n  'Bulgaria': '🇧🇬', 'Burkina Faso': '🇧🇫', 'Burundi': '🇧🇮', 'Cambodia': '🇰🇭', 'Cameroon': '🇨🇲',\n  'Canada': '🇨🇦', 'Cape Verde': '🇨🇻', 'Chile': '🇨🇱', 'China': '🇨🇳', 'Colombia': '🇨🇴',\n  'Congo': '🇨🇬', 'Congo DR': '🇨🇩', 'Costa Rica': '🇨🇷', 'Croatia': '🇭🇷', 'Cuba': '🇨🇺',\n  'Cyprus': '🇨🇾', 'Czech Republic': '🇨🇿', 'Denmark': '🇩🇰', 'Ecuador': '🇪🇨', 'Egypt': '🇪🇬',\n  'El Salvador': '🇸🇻', 'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Estonia': '🇪🇪', 'Ethiopia': '🇪🇹', 'Finland': '🇫🇮',\n  'France': '🇫🇷', 'Gabon': '🇬🇦', 'Gambia': '🇬🇲', 'Georgia': '🇬🇪', 'Germany': '🇩🇪',\n  'Ghana': '🇬🇭', 'Gibraltar': '🇬🇮', 'Greece': '🇬🇷', 'Guatemala': '🇬🇹', 'Guinea': '🇬🇳',\n  'Guinea-Bissau': '🇬🇼', 'Guam': '🇬🇺', 'Haiti': '🇭🇹', 'Honduras': '🇭🇳', 'Hungary': '🇭🇺',\n  'Iceland': '🇮🇸', 'India': '🇮🇳', 'Indonesia': '🇮🇩', 'Iran': '🇮🇷', 'Iraq': '🇮🇶',\n  'Ireland': '🇮🇪', 'Israel': '🇮🇱', 'Italy': '🇮🇹', 'Ivory Coast': '🇨🇮', \"Cote d'Ivoire\": '🇨🇮',\n  'Jamaica': '🇯🇲', 'Japan': '🇯🇵', 'Jordan': '🇯🇴', 'Kazakhstan': '🇰🇿', 'Kenya': '🇰🇪',\n  'Kosovo': '🇽🇰', 'Kuwait': '🇰🇼', 'Kyrgyzstan': '🇰🇬', 'Latvia': '🇱🇻', 'Lebanon': '🇱🇧',\n  'Liberia': '🇱🇷', 'Libya': '🇱🇾', 'Lithuania': '🇱🇹', 'Luxembourg': '🇱🇺', 'Madagascar': '🇲🇬',\n  'Malawi': '🇲🇼', 'Malaysia': '🇲🇾', 'Mali': '🇲🇱', 'Malta': '🇲🇹', 'Mauritania': '🇲🇷',\n  'Mexico': '🇲🇽', 'Moldova': '🇲🇩', 'Montenegro': '🇲🇪', 'Morocco': '🇲🇦', 'Mozambique': '🇲🇿',\n  'Myanmar': '🇲🇲', 'Namibia': '🇳🇦', 'Nepal': '🇳🇵', 'Netherlands': '🇳🇱', 'New Zealand': '🇳🇿',\n  'Nicaragua': '🇳🇮', 'Niger': '🇳🇪', 'Nigeria': '🇳🇬', 'North Korea': '🇰🇵', 'North Macedonia': '🇲🇰',\n  'Northern Ireland': '🇬🇧', 'Norway': '🇳🇴', 'Oman': '🇴🇲', 'Pakistan': '🇵🇰', 'Palestine': '🇵🇸',\n  'Panama': '🇵🇦', 'Paraguay': '🇵🇾', 'Peru': '🇵🇪', 'Philippines': '🇵🇭', 'Poland': '🇵🇱',\n  'Portugal': '🇵🇹', 'Qatar': '🇶🇦', 'Romania': '🇷🇴', 'Russia': '🇷🇺', 'Rwanda': '🇷🇼',\n  'Saudi Arabia': '🇸🇦', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Senegal': '🇸🇳', 'Serbia': '🇷🇸', 'Sierra Leone': '🇸🇱',\n  'Slovakia': '🇸🇰', 'Slovenia': '🇸🇮', 'Somalia': '🇸🇴', 'South Africa': '🇿🇦', 'South Korea': '🇰🇷',\n  'Spain': '🇪🇸', 'Sudan': '🇸🇩', 'Sweden': '🇸🇪', 'Switzerland': '🇨🇭', 'Syria': '🇸🇾',\n  'Tanzania': '🇹🇿', 'Thailand': '🇹🇭', 'Togo': '🇹🇬', 'Trinidad and Tobago': '🇹🇹', 'Tunisia': '🇹🇳',\n  'Turkey': '🇹🇷', 'Turkmenistan': '🇹🇲', 'Uganda': '🇺🇬', 'Ukraine': '🇺🇦', 'United Arab Emirates': '🇦🇪',\n  'United States': '🇺🇸', 'Uruguay': '🇺🇾', 'Uzbekistan': '🇺🇿', 'Venezuela': '🇻🇪', 'Vietnam': '🇻🇳',\n  'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Yemen': '🇾🇪', 'Zambia': '🇿🇲', 'Zimbabwe': '🇿🇼',\n  'Dominican Republic': '🇩🇴', 'Korea': '🇰🇷'\n};\n\nconst getFlag = name => flags[name] || '🚩';\nconst API_KEY = 'YOUR_API_FOOTBALL_KEY';\n\nconst fetchScorers = async (match) => {\n  const homeId = match.teams.home.id;\n  const homeScorers = [];\n  const awayScorers = [];\n  let events = [];\n  try {\n    const res = await this.helpers.httpRequest({\n      method: 'GET',\n      url: `https://v3.football.api-sports.io/fixtures/events?fixture=${match.fixture.id}`,\n      headers: { 'x-apisports-key': API_KEY },\n      json: true,\n    });\n    events = (res && res.response) || [];\n  } catch (e) {\n    return { homeScorers, awayScorers };\n  }\n  const goals = events.filter(e => e && e.type === 'Goal' && e.detail !== 'Missed Penalty');\n  goals.sort((a, b) => {\n    const ae = a.time.elapsed || 0, be = b.time.elapsed || 0;\n    if (ae !== be) return ae - be;\n    return (a.time.extra || 0) - (b.time.extra || 0);\n  });\n  for (const e of goals) {\n    const player = (e.player && e.player.name) || 'Unknown';\n    const el = e.time.elapsed;\n    const extra = e.time.extra;\n    const minute = `${el != null ? el : ''}${extra ? '+' + extra : ''}'`;\n    const isPen = e.detail === 'Penalty';\n    const isOwn = e.detail === 'Own Goal';\n    const tag = isPen ? ' (P)' : (isOwn ? ' (OG)' : '');\n    const label = `${player} ${minute}${tag}`;\n    const teamId = e.team && e.team.id;\n    let creditHome = teamId === homeId;\n    if (isOwn) creditHome = !creditHome;\n    (creditHome ? homeScorers : awayScorers).push(label);\n  }\n  return { homeScorers, awayScorers };\n};\n\nconst header = '*🏆 FIFA WORLD CUP 2026 ⚽*\\n*TODAY RESULTS*';\n\nconst matchBlocks = [];\nfor (const match of fixtures) {\n  const home = match.teams.home.name;\n  const away = match.teams.away.name;\n  const status = match.fixture.status.short;\n  const homeGoals = match.goals.home;\n  const awayGoals = match.goals.away;\n\n  let scoreText;\n  if (FINISHED_STATUSES.includes(status)) {\n    const suffix = status === 'AET' ? ' AET' : status === 'PEN' ? ' PEN' : '';\n    scoreText = `${homeGoals}-${awayGoals}${suffix}`;\n  } else if (status === 'NS') {\n    scoreText = 'Not started';\n  } else if (status === 'SUSP') {\n    scoreText = 'Suspended';\n  } else if (CANCELLED_STATUSES.includes(status)) {\n    scoreText = status === 'PST' ? 'Postponed' : 'Cancelled';\n  } else {\n    scoreText = 'In Progress';\n  }\n\n  let block = `${getFlag(home)} ${home} (${scoreText}) ${away} ${getFlag(away)}`;\n\n  if (FINISHED_STATUSES.includes(status) && ((homeGoals || 0) + (awayGoals || 0)) > 0) {\n    const { homeScorers, awayScorers } = await fetchScorers(match);\n    const parts = [];\n    if (homeScorers.length) parts.push(homeScorers.join('\\n'));\n    if (awayScorers.length) parts.push(awayScorers.join('\\n'));\n    if (parts.length) block += `\\n${parts.join('\\n-\\n')}`;\n  }\n\n  matchBlocks.push(block);\n}\n\nconst MAX_CHARS = 1500;\nconst chunks = [];\nlet current = `${header}\\n\\n${matchBlocks[0] || ''}`;\n\nfor (let i = 1; i < matchBlocks.length; i++) {\n  const block = matchBlocks[i];\n  const testMsg = current + '\\n\\n' + block;\n  if (testMsg.length > MAX_CHARS) {\n    chunks.push(current);\n    current = block;\n  } else {\n    current = testMsg;\n  }\n}\nif (current) chunks.push(current);\n\nconst output = [];\nfor (const to of recipients) {\n  for (const message of chunks) {\n    output.push({ json: { message, to } });\n  }\n}\nreturn output;"
       },
       "id": "e5c4abdd-7d2b-46db-8049-e2e1449dffd0",
       "name": "Format Results Summary",
@@ -221,7 +224,8 @@
       "parameters": {
         "content": "## International Football — Daily WC2026 Alerts\n\nSends WhatsApp notifications via Twilio to 5 recipients.\n\n**Two pipelines run daily:**\n- **Morning (7am CR):** Upcoming match preview with kickoff times\n- **Night (11pm CR):** Final results with scorers\n\n**Filters:** WC2026 qualifying nations only · Leagues 1 (World Cup) & 10 (Friendlies) · No youth teams\n\n**Timezone note:** Fetches both today + next UTC day to cover the CR evening window (6pm–midnight CR = next UTC day).",
         "height": 212,
-        "width": 828
+        "width": 828,
+        "color": 5
       },
       "id": "6c90e09f-e7cb-43af-b820-3fedfc33aa84",
       "name": "📋 Workflow Overview",
@@ -235,9 +239,8 @@
     {
       "parameters": {
         "content": "## Morning Pipeline — 7am CR\nFetches fixtures scheduled for today (CR timezone).\nFetches next UTC day to cover CR evening matches.\nFilters → formats preview message → sends to all recipients.",
-        "height": 140,
-        "width": 440,
-        "color": 3
+        "height": 124,
+        "width": 440
       },
       "id": "1f720cd0-d445-4de2-a8b0-7f1de3870e4a",
       "name": "🌅 Morning Branch",
@@ -245,7 +248,7 @@
       "typeVersion": 1,
       "position": [
         -512,
-        -16
+        0
       ]
     },
     {
@@ -253,7 +256,7 @@
         "content": "## Night Pipeline — 11pm CR\nFetches completed fixtures for today (CR timezone).\nFetches next UTC day for late CR matches.\nFilters → formats results with scorers + minutes → chunks at 1500 chars → sends to all recipients.",
         "height": 140,
         "width": 440,
-        "color": 5
+        "color": 6
       },
       "id": "1b2b2838-e273-4c76-a126-99e237eaac71",
       "name": "🌙 Night Branch",
@@ -261,23 +264,23 @@
       "typeVersion": 1,
       "position": [
         -512,
-        208
+        224
       ]
     },
     {
       "parameters": {
         "content": "## ⚠️ WhatsApp 24h Window\n\n**Sandbox (free):** WhatsApp only delivers free-form messages if the user wrote in the last 24h — otherwise Twilio returns **error 63016** and the message is **Undelivered**.\n\n**Fix:** the morning digest asks users to **reply (\"OK\")** to reopen their 24h window. A reply works; a reaction (emoji) does **not**. Going >24h without replying still fails until they message again.\n\nFully reliable delivery needs an approved template on a paid production sender.",
-        "height": 260,
-        "width": 420,
-        "color": 4
+        "height": 256,
+        "width": 436,
+        "color": 3
       },
-      "id": "f4b7c2a1-9d3e-4c8a-b6f1-2e7a9c1d5b08",
+      "id": "a72b497f-03c4-4a1a-b0b9-61bc094e8658",
       "name": "⚠️ 24h Messaging Window",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1200,
-        16
+        -512,
+        -320
       ]
     }
   ],
@@ -377,9 +380,463 @@
     "availableInMCP": true,
     "timezone": "America/Costa_Rica"
   },
-  "staticData": null,
-  "pinData": {},
+  "staticData": {
+    "node:Every Morning at 7am": {
+      "recurrenceRules": []
+    },
+    "node:Every Night at 11pm": {
+      "recurrenceRules": []
+    },
+    "node:Every Night at 11pm - Test": {
+      "recurrenceRules": []
+    }
+  },
   "meta": {
-    "templateCredsSetupCompleted": false
+    "templateCredsSetupCompleted": true,
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "activeVersionId": "ac41dedc-b535-4c20-b75f-fe39ffc8cf24",
+  "versionCounter": 155,
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2026-06-03T07:47:32.604Z",
+      "createdAt": "2026-06-03T07:47:32.604Z",
+      "role": "workflow:owner",
+      "workflowId": "r2kp3lSJz2pOfKBl",
+      "projectId": "YTkY6fucjtA3Jb4R",
+      "project": {
+        "updatedAt": "2026-06-03T07:45:31.181Z",
+        "createdAt": "2026-06-03T03:44:13.932Z",
+        "id": "YTkY6fucjtA3Jb4R",
+        "name": "Kevin Diaz <kevindmadrigal@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "831de140-d6fc-405b-aa04-a06b99cee97c"
+      }
+    }
+  ],
+  "tags": [
+    {
+      "updatedAt": "2026-06-03T07:47:30.267Z",
+      "createdAt": "2026-06-03T07:47:30.267Z",
+      "id": "VxihNx1RdcIfjl8i",
+      "name": "twilio"
+    },
+    {
+      "updatedAt": "2026-06-03T07:47:30.293Z",
+      "createdAt": "2026-06-03T07:47:30.293Z",
+      "id": "QpIxRS3wYDcS9Fuf",
+      "name": "api football"
+    },
+    {
+      "updatedAt": "2026-06-10T08:07:46.139Z",
+      "createdAt": "2026-06-10T08:07:46.139Z",
+      "id": "BqP0IreajVaMH1R4",
+      "name": "whatsapp"
+    },
+    {
+      "updatedAt": "2026-06-10T08:11:29.042Z",
+      "createdAt": "2026-06-10T08:11:29.042Z",
+      "id": "MvBu73G836y06hNt",
+      "name": "scheduled"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-06-12T02:18:13.905Z",
+    "createdAt": "2026-06-12T02:18:13.905Z",
+    "versionId": "ac41dedc-b535-4c20-b75f-fe39ffc8cf24",
+    "workflowId": "r2kp3lSJz2pOfKBl",
+    "nodes": [
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 7 * * *"
+              }
+            ]
+          }
+        },
+        "id": "e99d7273-424f-4734-a3d8-fd0d55f58877",
+        "name": "Every Morning at 7am",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          0,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://v3.football.api-sports.io/fixtures",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "date",
+                "value": "={{ DateTime.now().setZone('America/Costa_Rica').toFormat('yyyy-MM-dd') }}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "x-apisports-key",
+                "value": "YOUR_API_FOOTBALL_KEY"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "36620545-7b15-4312-9a1e-362cca40430c",
+        "name": "Fetch Today's Matches",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          240,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const crNow = DateTime.now().setZone('America/Costa_Rica');\nconst crDayStartMs = crNow.startOf('day').toMillis();\nconst crDayEndMs   = crNow.endOf('day').toMillis();\n\nconst isYouth = name => /\\bU\\d{2}\\b/i.test(name);\nconst VALID_LEAGUES = [1, 10];\nconst VALID_STATUSES = ['NS', 'TBD'];\n\nconst WC2026_QUALIFIERS = new Set([\n  'Australia','Iran','Japan','Jordan','South Korea','Korea Republic',\n  'Qatar','Saudi Arabia','Uzbekistan','Iraq',\n  'Algeria','Cape Verde','Cabo Verde','Ivory Coast',\"Cote d'Ivoire\",'Egypt',\n  'Ghana','Morocco','Senegal','South Africa','Tunisia','Congo DR','DR Congo',\n  'United States','USA','Canada','Mexico','Cura\\u00e7ao','Curacao','Haiti','Panama',\n  'Argentina','Brazil','Colombia','Ecuador','Paraguay','Uruguay',\n  'New Zealand',\n  'England','France','Croatia','Norway','Portugal','Germany',\n  'Netherlands','Austria','Belgium','Scotland','Spain','Switzerland',\n  'Sweden','Turkey','T\\u00fcrkiye','Bosnia','Bosnia and Herzegovina',\n  'Czech Republic','Czechia','Iceland',\n]);\n\nconst recipients = [\n  '+10000000001',\n  '+10000000002',\n  '+10000000003',\n  '+10000000004',\n  '+10000000005'\n];\n\n// Primary: today CR date (UTC today)\nconst primaryFixtures = $(\"Fetch Today's Matches\").first().json.response || [];\n// Secondary: next UTC day â€” covers CR evening 6 pmâ€“midnight\nconst secondaryFixtures = $input.first().json.response || [];\n\n// Combine, deduplicate, filter to CR calendar day\nconst seenIds = new Set();\nconst crDayFixtures = [...primaryFixtures, ...secondaryFixtures]\n  .filter(f => {\n    if (seenIds.has(f.fixture.id)) return false;\n    seenIds.add(f.fixture.id);\n    const ts = new Date(f.fixture.date).getTime();\n    return ts >= crDayStartMs && ts <= crDayEndMs;\n  });\n\n// Business filters\nconst fixtures = crDayFixtures.filter(m => {\n  if (!VALID_LEAGUES.includes(m.league.id)) return false;\n  if (!VALID_STATUSES.includes(m.fixture.status.short)) return false;\n  if (isYouth(m.teams.home.name) || isYouth(m.teams.away.name)) return false;\n  if (!WC2026_QUALIFIERS.has(m.teams.home.name) && !WC2026_QUALIFIERS.has(m.teams.away.name)) return false;\n  return true;\n});\n\nif (fixtures.length === 0) {\n  return recipients.map(to => ({ json: { message: '\\uD83C\\uDF0D No matches involving World Cup 2026 teams scheduled for today.\\n\\n_\\uD83D\\uDCAC Reply to this message (e.g. \"OK\") to keep receiving the daily report._', to } }));\n}\n\nconst flags = {\n  'Afghanistan': '\\uD83C\\uDDE6\\uD83C\\uDDEB', 'Albania': '\\uD83C\\uDDE6\\uD83C\\uDDF1', 'Algeria': '\\uD83C\\uDDE9\\uD83C\\uDDFF', 'Andorra': '\\uD83C\\uDDE6\\uD83C\\uDDE9', 'Angola': '\\uD83C\\uDDE6\\uD83C\\uDDF4',\n  'Argentina': '\\uD83C\\uDDE6\\uD83C\\uDDF7', 'Armenia': '\\uD83C\\uDDE6\\uD83C\\uDDF2', 'Australia': '\\uD83C\\uDDE6\\uD83C\\uDDFA', 'Austria': '\\uD83C\\uDDE6\\uD83C\\uDDF9', 'Azerbaijan': '\\uD83C\\uDDE6\\uD83C\\uDDFF',\n  'Bahrain': '\\uD83C\\uDDE7\\uD83C\\uDDED', 'Bangladesh': '\\uD83C\\uDDE7\\uD83C\\uDDE9', 'Belarus': '\\uD83C\\uDDE7\\uD83C\\uDDFE', 'Belgium': '\\uD83C\\uDDE7\\uD83C\\uDDEA', 'Benin': '\\uD83C\\uDDE7\\uD83C\\uDDEF',\n  'Bolivia': '\\uD83C\\uDDE7\\uD83C\\uDDF4', 'Bosnia': '\\uD83C\\uDDE7\\uD83C\\uDDE6', 'Botswana': '\\uD83C\\uDDE7\\uD83C\\uDDFC', 'Brazil': '\\uD83C\\uDDE7\\uD83C\\uDDF7', 'British Virgin Islands': '\\uD83C\\uDDFB\\uD83C\\uDDEC',\n  'Bulgaria': '\\uD83C\\uDDE7\\uD83C\\uDDEC', 'Burkina Faso': '\\uD83C\\uDDE7\\uD83C\\uDDEB', 'Burundi': '\\uD83C\\uDDE7\\uD83C\\uDDEE', 'Cambodia': '\\uD83C\\uDDF0\\uD83C\\uDDED', 'Cameroon': '\\uD83C\\uDDE8\\uD83C\\uDDF2',\n  'Canada': '\\uD83C\\uDDE8\\uD83C\\uDDE6', 'Cape Verde': '\\uD83C\\uDDE8\\uD83C\\uDDFB', 'Chile': '\\uD83C\\uDDE8\\uD83C\\uDDF1', 'China': '\\uD83C\\uDDE8\\uD83C\\uDDF3', 'Colombia': '\\uD83C\\uDDE8\\uD83C\\uDDF4',\n  'Congo': '\\uD83C\\uDDE8\\uD83C\\uDDEC', 'Congo DR': '\\uD83C\\uDDE8\\uD83C\\uDDE9', 'Costa Rica': '\\uD83C\\uDDE8\\uD83C\\uDDF7', 'Croatia': '\\uD83C\\uDDED\\uD83C\\uDDF7', 'Cuba': '\\uD83C\\uDDE8\\uD83C\\uDDFA',\n  'Cyprus': '\\uD83C\\uDDE8\\uD83C\\uDDFE', 'Czech Republic': '\\uD83C\\uDDE8\\uD83C\\uDDFF', 'Denmark': '\\uD83C\\uDDE9\\uD83C\\uDDF0', 'Ecuador': '\\uD83C\\uDDEA\\uD83C\\uDDE8', 'Egypt': '\\uD83C\\uDDEA\\uD83C\\uDDEC',\n  'El Salvador': '\\uD83C\\uDDF8\\uD83C\\uDDFB', 'England': '\\uD83C\\uDFF4\\uDB40\\uDC67\\uDB40\\uDC62\\uDB40\\uDC65\\uDB40\\uDC6E\\uDB40\\uDC67\\uDB40\\uDC7F', 'Estonia': '\\uD83C\\uDDEA\\uD83C\\uDDEA', 'Ethiopia': '\\uD83C\\uDDEA\\uD83C\\uDDF9', 'Finland': '\\uD83C\\uDDEB\\uD83C\\uDDEE',\n  'France': '\\uD83C\\uDDEB\\uD83C\\uDDF7', 'Gabon': '\\uD83C\\uDDEC\\uD83C\\uDDE6', 'Gambia': '\\uD83C\\uDDEC\\uD83C\\uDDF2', 'Georgia': '\\uD83C\\uDDEC\\uD83C\\uDDEA', 'Germany': '\\uD83C\\uDDE9\\uD83C\\uDDEA',\n  'Ghana': '\\uD83C\\uDDEC\\uD83C\\uDDED', 'Gibraltar': '\\uD83C\\uDDEC\\uD83C\\uDDEE', 'Greece': '\\uD83C\\uDDEC\\uD83C\\uDDF7', 'Guatemala': '\\uD83C\\uDDEC\\uD83C\\uDDF9', 'Guinea': '\\uD83C\\uDDEC\\uD83C\\uDDF3',\n  'Guinea-Bissau': '\\uD83C\\uDDEC\\uD83C\\uDDFC', 'Guam': '\\uD83C\\uDDEC\\uD83C\\uDDFA', 'Haiti': '\\uD83C\\uDDED\\uD83C\\uDDF9', 'Honduras': '\\uD83C\\uDDED\\uD83C\\uDDF3', 'Hungary': '\\uD83C\\uDDED\\uD83C\\uDDFA',\n  'Iceland': '\\uD83C\\uDDEE\\uD83C\\uDDF8', 'India': '\\uD83C\\uDDEE\\uD83C\\uDDF3', 'Indonesia': '\\uD83C\\uDDEE\\uD83C\\uDDE9', 'Iran': '\\uD83C\\uDDEE\\uD83C\\uDDF7', 'Iraq': '\\uD83C\\uDDEE\\uD83C\\uDDF6',\n  'Ireland': '\\uD83C\\uDDEE\\uD83C\\uDDEA', 'Israel': '\\uD83C\\uDDEE\\uD83C\\uDDF1', 'Italy': '\\uD83C\\uDDEE\\uD83C\\uDDF9', 'Ivory Coast': '\\uD83C\\uDDE8\\uD83C\\uDDEE', \"Cote d'Ivoire\": '\\uD83C\\uDDE8\\uD83C\\uDDEE',\n  'Jamaica': '\\uD83C\\uDDEF\\uD83C\\uDDF2', 'Japan': '\\uD83C\\uDDEF\\uD83C\\uDDF5', 'Jordan': '\\uD83C\\uDDEF\\uD83C\\uDDF4', 'Kazakhstan': '\\uD83C\\uDDF0\\uD83C\\uDDFF', 'Kenya': '\\uD83C\\uDDF0\\uD83C\\uDDEA',\n  'Kosovo': '\\uD83C\\uDDFD\\uD83C\\uDDF0', 'Kuwait': '\\uD83C\\uDDF0\\uD83C\\uDDFC', 'Kyrgyzstan': '\\uD83C\\uDDF0\\uD83C\\uDDEC', 'Latvia': '\\uD83C\\uDDF1\\uD83C\\uDDFB', 'Lebanon': '\\uD83C\\uDDF1\\uD83C\\uDDE7',\n  'Liberia': '\\uD83C\\uDDF1\\uD83C\\uDDF7', 'Libya': '\\uD83C\\uDDF1\\uD83C\\uDDFE', 'Lithuania': '\\uD83C\\uDDF1\\uD83C\\uDDF9', 'Luxembourg': '\\uD83C\\uDDF1\\uD83C\\uDDFA', 'Madagascar': '\\uD83C\\uDDF2\\uD83C\\uDDEC',\n  'Malawi': '\\uD83C\\uDDF2\\uD83C\\uDDFC', 'Malaysia': '\\uD83C\\uDDF2\\uD83C\\uDDFE', 'Mali': '\\uD83C\\uDDF2\\uD83C\\uDDF1', 'Malta': '\\uD83C\\uDDF2\\uD83C\\uDDF9', 'Mauritania': '\\uD83C\\uDDF2\\uD83C\\uDDF7',\n  'Mexico': '\\uD83C\\uDDF2\\uD83C\\uDDFD', 'Moldova': '\\uD83C\\uDDF2\\uD83C\\uDDE9', 'Montenegro': '\\uD83C\\uDDF2\\uD83C\\uDDEA', 'Morocco': '\\uD83C\\uDDF2\\uD83C\\uDDE6', 'Mozambique': '\\uD83C\\uDDF2\\uD83C\\uDDFF',\n  'Myanmar': '\\uD83C\\uDDF2\\uD83C\\uDDF2', 'Namibia': '\\uD83C\\uDDF3\\uD83C\\uDDE6', 'Nepal': '\\uD83C\\uDDF3\\uD83C\\uDDF5', 'Netherlands': '\\uD83C\\uDDF3\\uD83C\\uDDF1', 'New Zealand': '\\uD83C\\uDDF3\\uD83C\\uDDFF',\n  'Nicaragua': '\\uD83C\\uDDF3\\uD83C\\uDDEE', 'Niger': '\\uD83C\\uDDF3\\uD83C\\uDDEA', 'Nigeria': '\\uD83C\\uDDF3\\uD83C\\uDDEC', 'North Korea': '\\uD83C\\uDDF0\\uD83C\\uDDF5', 'North Macedonia': '\\uD83C\\uDDF2\\uD83C\\uDDF0',\n  'Northern Ireland': '\\uD83C\\uDDEC\\uD83C\\uDDE7', 'Norway': '\\uD83C\\uDDF3\\uD83C\\uDDF4', 'Oman': '\\uD83C\\uDDF4\\uD83C\\uDDF2', 'Pakistan': '\\uD83C\\uDDF5\\uD83C\\uDDF0', 'Palestine': '\\uD83C\\uDDF5\\uD83C\\uDDF8',\n  'Panama': '\\uD83C\\uDDF5\\uD83C\\uDDE6', 'Paraguay': '\\uD83C\\uDDF5\\uD83C\\uDDFE', 'Peru': '\\uD83C\\uDDF5\\uD83C\\uDDEA', 'Philippines': '\\uD83C\\uDDF5\\uD83C\\uDDED', 'Poland': '\\uD83C\\uDDF5\\uD83C\\uDDF1',\n  'Portugal': '\\uD83C\\uDDF5\\uD83C\\uDDF9', 'Qatar': '\\uD83C\\uDDF6\\uD83C\\uDDE6', 'Romania': '\\uD83C\\uDDF7\\uD83C\\uDDF4', 'Russia': '\\uD83C\\uDDF7\\uD83C\\uDDFA', 'Rwanda': '\\uD83C\\uDDF7\\uD83C\\uDDFC',\n  'Saudi Arabia': '\\uD83C\\uDDF8\\uD83C\\uDDE6', 'Scotland': '\\uD83C\\uDFF4\\uDB40\\uDC67\\uDB40\\uDC62\\uDB40\\uDC73\\uDB40\\uDC63\\uDB40\\uDC74\\uDB40\\uDC7F', 'Senegal': '\\uD83C\\uDDF8\\uD83C\\uDDF3', 'Serbia': '\\uD83C\\uDDF7\\uD83C\\uDDF8', 'Sierra Leone': '\\uD83C\\uDDF8\\uD83C\\uDDF1',\n  'Slovakia': '\\uD83C\\uDDF8\\uD83C\\uDDF0', 'Slovenia': '\\uD83C\\uDDF8\\uD83C\\uDDEE', 'Somalia': '\\uD83C\\uDDF8\\uD83C\\uDDF4', 'South Africa': '\\uD83C\\uDDFF\\uD83C\\uDDE6', 'South Korea': '\\uD83C\\uDDF0\\uD83C\\uDDF7',\n  'Spain': '\\uD83C\\uDDEA\\uD83C\\uDDF8', 'Sudan': '\\uD83C\\uDDF8\\uD83C\\uDDE9', 'Sweden': '\\uD83C\\uDDF8\\uD83C\\uDDEA', 'Switzerland': '\\uD83C\\uDDE8\\uD83C\\uDDED', 'Syria': '\\uD83C\\uDDF8\\uD83C\\uDDFE',\n  'Tanzania': '\\uD83C\\uDDF9\\uD83C\\uDDFF', 'Thailand': '\\uD83C\\uDDF9\\uD83C\\uDDED', 'Togo': '\\uD83C\\uDDF9\\uD83C\\uDDEC', 'Trinidad and Tobago': '\\uD83C\\uDDF9\\uD83C\\uDDF9', 'Tunisia': '\\uD83C\\uDDF9\\uD83C\\uDDF3',\n  'Turkey': '\\uD83C\\uDDF9\\uD83C\\uDDF7', 'Turkmenistan': '\\uD83C\\uDDF9\\uD83C\\uDDF2', 'Uganda': '\\uD83C\\uDDFA\\uD83C\\uDDEC', 'Ukraine': '\\uD83C\\uDDFA\\uD83C\\uDDE6', 'United Arab Emirates': '\\uD83C\\uDDE6\\uD83C\\uDDEA',\n  'United States': '\\uD83C\\uDDFA\\uD83C\\uDDF8', 'Uruguay': '\\uD83C\\uDDFA\\uD83C\\uDDFE', 'Uzbekistan': '\\uD83C\\uDDFA\\uD83C\\uDDFF', 'Venezuela': '\\uD83C\\uDDFB\\uD83C\\uDDEA', 'Vietnam': '\\uD83C\\uDDFB\\uD83C\\uDDF3',\n  'Wales': '\\uD83C\\uDFF4\\uDB40\\uDC67\\uDB40\\uDC62\\uDB40\\uDC77\\uDB40\\uDC6C\\uDB40\\uDC73\\uDB40\\uDC7F', 'Yemen': '\\uD83C\\uDDFE\\uD83C\\uDDEA', 'Zambia': '\\uD83C\\uDDFF\\uD83C\\uDDF2', 'Zimbabwe': '\\uD83C\\uDDFF\\uD83C\\uDDFC',\n  'Dominican Republic': '\\uD83C\\uDDE9\\uD83C\\uDDF4', 'Korea': '\\uD83C\\uDDF0\\uD83C\\uDDF7'\n};\n\nconst getFlag = name => flags[name] || '\\uD83C\\uDFC1';\n\nconst hasWorldCup = fixtures.some(m => m.league.id === 1);\nconst header = hasWorldCup ? '\\uD83C\\uDFC6 FIFA WORLD CUP 2026 \\u26bd' : '\\u26BD INTERNATIONAL FRIENDLIES';\n\nconst today = new Date();\nconst dateStr = today.toLocaleDateString('en-US', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',\n  timeZone: 'America/Costa_Rica'\n});\n\nlet msg = `*${header}*\\n_${dateStr}_\\n\\n`;\n\nfor (const match of fixtures) {\n  const utcDate = new Date(match.fixture.date);\n  const crTime = utcDate.toLocaleTimeString('en-US', {\n    hour: '2-digit', minute: '2-digit', hour12: true,\n    timeZone: 'America/Costa_Rica'\n  });\n  const home = match.teams.home.name;\n  const away = match.teams.away.name;\n  msg += `${crTime} | ${getFlag(home)}${getFlag(away)} ${home} vs ${away}\\n`;\n}\n\nmsg += `\\n_\\uD83D\\uDCAC Reply to this message (e.g. \"OK\") to keep receiving the daily report._`;\n\nreturn recipients.map(to => ({ json: { message: msg, to } }));\n"
+        },
+        "id": "ff0c4070-fa1d-45f0-a456-5eb5b3c7361e",
+        "name": "Format Match Summary",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "from": "+14155238886",
+          "to": "={{ $json.to }}",
+          "toWhatsapp": true,
+          "message": "={{ $json.message }}",
+          "options": {}
+        },
+        "id": "787b6edf-1d7e-43d1-9732-69d6504c039d",
+        "name": "Send WhatsApp Message",
+        "type": "n8n-nodes-base.twilio",
+        "typeVersion": 1,
+        "position": [
+          944,
+          112
+        ],
+        "credentials": {
+          "twilioApi": {
+            "id": "wj8PKKKy18XUChtJ",
+            "name": "Twilio account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "rule": {
+            "interval": [
+              {
+                "field": "cronExpression",
+                "expression": "0 23 * * *"
+              }
+            ]
+          }
+        },
+        "id": "2a5f55b9-d3f6-40bd-b1ba-e4ad10adcefa",
+        "name": "Every Night at 11pm",
+        "type": "n8n-nodes-base.scheduleTrigger",
+        "typeVersion": 1.3,
+        "position": [
+          0,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://v3.football.api-sports.io/fixtures",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "date",
+                "value": "={{ DateTime.now().setZone('America/Costa_Rica').toFormat('yyyy-MM-dd') }}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "x-apisports-key",
+                "value": "YOUR_API_FOOTBALL_KEY"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "4ddc529e-43fc-4732-85e3-0bb3a9391fc4",
+        "name": "Fetch Today's Results",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          240,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "const crNow = DateTime.now().setZone('America/Costa_Rica');\nconst crDayStartMs = crNow.startOf('day').toMillis();\nconst crDayEndMs   = crNow.endOf('day').toMillis();\n\nconst isYouth = name => /\\bU\\d{2}\\b/i.test(name);\nconst VALID_LEAGUES = [1, 10];\nconst FINISHED_STATUSES = ['FT', 'AET', 'PEN'];\nconst CANCELLED_STATUSES = ['CANC', 'PST', 'ABD'];\n\nconst WC2026_QUALIFIERS = new Set([\n  'Australia','Iran','Japan','Jordan','South Korea','Korea Republic',\n  'Qatar','Saudi Arabia','Uzbekistan','Iraq',\n  'Algeria','Cape Verde','Cabo Verde','Ivory Coast',\"Cote d'Ivoire\",'Egypt',\n  'Ghana','Morocco','Senegal','South Africa','Tunisia','Congo DR','DR Congo',\n  'United States','USA','Canada','Mexico','Curaçao','Curacao','Haiti','Panama',\n  'Argentina','Brazil','Colombia','Ecuador','Paraguay','Uruguay',\n  'New Zealand',\n  'England','France','Croatia','Norway','Portugal','Germany',\n  'Netherlands','Austria','Belgium','Scotland','Spain','Switzerland',\n  'Sweden','Turkey','Türkiye','Bosnia','Bosnia and Herzegovina',\n  'Czech Republic','Czechia','Iceland',\n]);\n\nconst recipients = [\n  '+10000000001',\n  '+10000000002',\n  '+10000000003',\n  '+10000000004',\n  '+10000000005'\n];\n\nconst primaryFixtures = $(\"Fetch Today's Results\").first().json.response || [];\nconst secondaryFixtures = $input.first().json.response || [];\n\nconst seenIds = new Set();\nconst crDayFixtures = [...primaryFixtures, ...secondaryFixtures]\n  .filter(f => {\n    if (seenIds.has(f.fixture.id)) return false;\n    seenIds.add(f.fixture.id);\n    const ts = new Date(f.fixture.date).getTime();\n    return ts >= crDayStartMs && ts <= crDayEndMs;\n  });\n\nconst fixtures = crDayFixtures.filter(m => {\n  if (!VALID_LEAGUES.includes(m.league.id)) return false;\n  if (isYouth(m.teams.home.name) || isYouth(m.teams.away.name)) return false;\n  if (!WC2026_QUALIFIERS.has(m.teams.home.name) && !WC2026_QUALIFIERS.has(m.teams.away.name)) return false;\n  return true;\n});\n\nif (fixtures.length === 0) {\n  return recipients.map(to => ({\n    json: { message: '🌍 No matches involving World Cup 2026 teams were played today.', to }\n  }));\n}\n\nconst flags = {\n  'Afghanistan': '🇦🇫', 'Albania': '🇦🇱', 'Algeria': '🇩🇿', 'Andorra': '🇦🇩', 'Angola': '🇦🇴',\n  'Argentina': '🇦🇷', 'Armenia': '🇦🇲', 'Australia': '🇦🇺', 'Austria': '🇦🇹', 'Azerbaijan': '🇦🇿',\n  'Bahrain': '🇧🇭', 'Bangladesh': '🇧🇩', 'Belarus': '🇧🇾', 'Belgium': '🇧🇪', 'Benin': '🇧🇯',\n  'Bolivia': '🇧🇴', 'Bosnia': '🇧🇦', 'Botswana': '🇧🇼', 'Brazil': '🇧🇷', 'British Virgin Islands': '🇻🇬',\n  'Bulgaria': '🇧🇬', 'Burkina Faso': '🇧🇫', 'Burundi': '🇧🇮', 'Cambodia': '🇰🇭', 'Cameroon': '🇨🇲',\n  'Canada': '🇨🇦', 'Cape Verde': '🇨🇻', 'Chile': '🇨🇱', 'China': '🇨🇳', 'Colombia': '🇨🇴',\n  'Congo': '🇨🇬', 'Congo DR': '🇨🇩', 'Costa Rica': '🇨🇷', 'Croatia': '🇭🇷', 'Cuba': '🇨🇺',\n  'Cyprus': '🇨🇾', 'Czech Republic': '🇨🇿', 'Denmark': '🇩🇰', 'Ecuador': '🇪🇨', 'Egypt': '🇪🇬',\n  'El Salvador': '🇸🇻', 'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Estonia': '🇪🇪', 'Ethiopia': '🇪🇹', 'Finland': '🇫🇮',\n  'France': '🇫🇷', 'Gabon': '🇬🇦', 'Gambia': '🇬🇲', 'Georgia': '🇬🇪', 'Germany': '🇩🇪',\n  'Ghana': '🇬🇭', 'Gibraltar': '🇬🇮', 'Greece': '🇬🇷', 'Guatemala': '🇬🇹', 'Guinea': '🇬🇳',\n  'Guinea-Bissau': '🇬🇼', 'Guam': '🇬🇺', 'Haiti': '🇭🇹', 'Honduras': '🇭🇳', 'Hungary': '🇭🇺',\n  'Iceland': '🇮🇸', 'India': '🇮🇳', 'Indonesia': '🇮🇩', 'Iran': '🇮🇷', 'Iraq': '🇮🇶',\n  'Ireland': '🇮🇪', 'Israel': '🇮🇱', 'Italy': '🇮🇹', 'Ivory Coast': '🇨🇮', \"Cote d'Ivoire\": '🇨🇮',\n  'Jamaica': '🇯🇲', 'Japan': '🇯🇵', 'Jordan': '🇯🇴', 'Kazakhstan': '🇰🇿', 'Kenya': '🇰🇪',\n  'Kosovo': '🇽🇰', 'Kuwait': '🇰🇼', 'Kyrgyzstan': '🇰🇬', 'Latvia': '🇱🇻', 'Lebanon': '🇱🇧',\n  'Liberia': '🇱🇷', 'Libya': '🇱🇾', 'Lithuania': '🇱🇹', 'Luxembourg': '🇱🇺', 'Madagascar': '🇲🇬',\n  'Malawi': '🇲🇼', 'Malaysia': '🇲🇾', 'Mali': '🇲🇱', 'Malta': '🇲🇹', 'Mauritania': '🇲🇷',\n  'Mexico': '🇲🇽', 'Moldova': '🇲🇩', 'Montenegro': '🇲🇪', 'Morocco': '🇲🇦', 'Mozambique': '🇲🇿',\n  'Myanmar': '🇲🇲', 'Namibia': '🇳🇦', 'Nepal': '🇳🇵', 'Netherlands': '🇳🇱', 'New Zealand': '🇳🇿',\n  'Nicaragua': '🇳🇮', 'Niger': '🇳🇪', 'Nigeria': '🇳🇬', 'North Korea': '🇰🇵', 'North Macedonia': '🇲🇰',\n  'Northern Ireland': '🇬🇧', 'Norway': '🇳🇴', 'Oman': '🇴🇲', 'Pakistan': '🇵🇰', 'Palestine': '🇵🇸',\n  'Panama': '🇵🇦', 'Paraguay': '🇵🇾', 'Peru': '🇵🇪', 'Philippines': '🇵🇭', 'Poland': '🇵🇱',\n  'Portugal': '🇵🇹', 'Qatar': '🇶🇦', 'Romania': '🇷🇴', 'Russia': '🇷🇺', 'Rwanda': '🇷🇼',\n  'Saudi Arabia': '🇸🇦', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'Senegal': '🇸🇳', 'Serbia': '🇷🇸', 'Sierra Leone': '🇸🇱',\n  'Slovakia': '🇸🇰', 'Slovenia': '🇸🇮', 'Somalia': '🇸🇴', 'South Africa': '🇿🇦', 'South Korea': '🇰🇷',\n  'Spain': '🇪🇸', 'Sudan': '🇸🇩', 'Sweden': '🇸🇪', 'Switzerland': '🇨🇭', 'Syria': '🇸🇾',\n  'Tanzania': '🇹🇿', 'Thailand': '🇹🇭', 'Togo': '🇹🇬', 'Trinidad and Tobago': '🇹🇹', 'Tunisia': '🇹🇳',\n  'Turkey': '🇹🇷', 'Turkmenistan': '🇹🇲', 'Uganda': '🇺🇬', 'Ukraine': '🇺🇦', 'United Arab Emirates': '🇦🇪',\n  'United States': '🇺🇸', 'Uruguay': '🇺🇾', 'Uzbekistan': '🇺🇿', 'Venezuela': '🇻🇪', 'Vietnam': '🇻🇳',\n  'Wales': '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Yemen': '🇾🇪', 'Zambia': '🇿🇲', 'Zimbabwe': '🇿🇼',\n  'Dominican Republic': '🇩🇴', 'Korea': '🇰🇷'\n};\n\nconst getFlag = name => flags[name] || '🚩';\nconst API_KEY = 'YOUR_API_FOOTBALL_KEY';\n\nconst fetchScorers = async (match) => {\n  const homeId = match.teams.home.id;\n  const homeScorers = [];\n  const awayScorers = [];\n  let events = [];\n  try {\n    const res = await this.helpers.httpRequest({\n      method: 'GET',\n      url: `https://v3.football.api-sports.io/fixtures/events?fixture=${match.fixture.id}`,\n      headers: { 'x-apisports-key': API_KEY },\n      json: true,\n    });\n    events = (res && res.response) || [];\n  } catch (e) {\n    return { homeScorers, awayScorers };\n  }\n  const goals = events.filter(e => e && e.type === 'Goal' && e.detail !== 'Missed Penalty');\n  goals.sort((a, b) => {\n    const ae = a.time.elapsed || 0, be = b.time.elapsed || 0;\n    if (ae !== be) return ae - be;\n    return (a.time.extra || 0) - (b.time.extra || 0);\n  });\n  for (const e of goals) {\n    const player = (e.player && e.player.name) || 'Unknown';\n    const el = e.time.elapsed;\n    const extra = e.time.extra;\n    const minute = `${el != null ? el : ''}${extra ? '+' + extra : ''}'`;\n    const isPen = e.detail === 'Penalty';\n    const isOwn = e.detail === 'Own Goal';\n    const tag = isPen ? ' (P)' : (isOwn ? ' (OG)' : '');\n    const label = `${player} ${minute}${tag}`;\n    const teamId = e.team && e.team.id;\n    let creditHome = teamId === homeId;\n    if (isOwn) creditHome = !creditHome;\n    (creditHome ? homeScorers : awayScorers).push(label);\n  }\n  return { homeScorers, awayScorers };\n};\n\nconst header = '*🏆 FIFA WORLD CUP 2026 ⚽*\\n*TODAY RESULTS*';\n\nconst matchBlocks = [];\nfor (const match of fixtures) {\n  const home = match.teams.home.name;\n  const away = match.teams.away.name;\n  const status = match.fixture.status.short;\n  const homeGoals = match.goals.home;\n  const awayGoals = match.goals.away;\n\n  let scoreText;\n  if (FINISHED_STATUSES.includes(status)) {\n    const suffix = status === 'AET' ? ' AET' : status === 'PEN' ? ' PEN' : '';\n    scoreText = `${homeGoals}-${awayGoals}${suffix}`;\n  } else if (status === 'NS') {\n    scoreText = 'Not started';\n  } else if (status === 'SUSP') {\n    scoreText = 'Suspended';\n  } else if (CANCELLED_STATUSES.includes(status)) {\n    scoreText = status === 'PST' ? 'Postponed' : 'Cancelled';\n  } else {\n    scoreText = 'In Progress';\n  }\n\n  let block = `${getFlag(home)} ${home} (${scoreText}) ${away} ${getFlag(away)}`;\n\n  if (FINISHED_STATUSES.includes(status) && ((homeGoals || 0) + (awayGoals || 0)) > 0) {\n    const { homeScorers, awayScorers } = await fetchScorers(match);\n    const parts = [];\n    if (homeScorers.length) parts.push(homeScorers.join('\\n'));\n    if (awayScorers.length) parts.push(awayScorers.join('\\n'));\n    if (parts.length) block += `\\n${parts.join('\\n-\\n')}`;\n  }\n\n  matchBlocks.push(block);\n}\n\nconst MAX_CHARS = 1500;\nconst chunks = [];\nlet current = `${header}\\n\\n${matchBlocks[0] || ''}`;\n\nfor (let i = 1; i < matchBlocks.length; i++) {\n  const block = matchBlocks[i];\n  const testMsg = current + '\\n\\n' + block;\n  if (testMsg.length > MAX_CHARS) {\n    chunks.push(current);\n    current = block;\n  } else {\n    current = testMsg;\n  }\n}\nif (current) chunks.push(current);\n\nconst output = [];\nfor (const to of recipients) {\n  for (const message of chunks) {\n    output.push({ json: { message, to } });\n  }\n}\nreturn output;"
+        },
+        "id": "e5c4abdd-7d2b-46db-8049-e2e1449dffd0",
+        "name": "Format Results Summary",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://v3.football.api-sports.io/fixtures",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "date",
+                "value": "={{ DateTime.now().setZone('America/Costa_Rica').plus({days:1}).toFormat('yyyy-MM-dd') }}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "x-apisports-key",
+                "value": "YOUR_API_FOOTBALL_KEY"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "31c0c738-2962-4abb-b604-0df38526c926",
+        "name": "Fetch Next UTC Matches",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          480,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "url": "https://v3.football.api-sports.io/fixtures",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "date",
+                "value": "={{ DateTime.now().setZone('America/Costa_Rica').plus({days:1}).toFormat('yyyy-MM-dd') }}"
+              }
+            ]
+          },
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "x-apisports-key",
+                "value": "YOUR_API_FOOTBALL_KEY"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "6765f4f8-a08f-44bf-a5bc-f9ec80b176ae",
+        "name": "Fetch Next UTC Results",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          480,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## International Football — Daily WC2026 Alerts\n\nSends WhatsApp notifications via Twilio to 5 recipients.\n\n**Two pipelines run daily:**\n- **Morning (7am CR):** Upcoming match preview with kickoff times\n- **Night (11pm CR):** Final results with scorers\n\n**Filters:** WC2026 qualifying nations only · Leagues 1 (World Cup) & 10 (Friendlies) · No youth teams\n\n**Timezone note:** Fetches both today + next UTC day to cover the CR evening window (6pm–midnight CR = next UTC day).",
+          "height": 212,
+          "width": 828,
+          "color": 5
+        },
+        "id": "6c90e09f-e7cb-43af-b820-3fedfc33aa84",
+        "name": "📋 Workflow Overview",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          0,
+          -272
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## Morning Pipeline — 7am CR\nFetches fixtures scheduled for today (CR timezone).\nFetches next UTC day to cover CR evening matches.\nFilters → formats preview message → sends to all recipients.",
+          "height": 124,
+          "width": 440
+        },
+        "id": "1f720cd0-d445-4de2-a8b0-7f1de3870e4a",
+        "name": "🌅 Morning Branch",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -512,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## Night Pipeline — 11pm CR\nFetches completed fixtures for today (CR timezone).\nFetches next UTC day for late CR matches.\nFilters → formats results with scorers + minutes → chunks at 1500 chars → sends to all recipients.",
+          "height": 140,
+          "width": 440,
+          "color": 6
+        },
+        "id": "1b2b2838-e273-4c76-a126-99e237eaac71",
+        "name": "🌙 Night Branch",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -512,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## ⚠️ WhatsApp 24h Window\n\n**Sandbox (free):** WhatsApp only delivers free-form messages if the user wrote in the last 24h — otherwise Twilio returns **error 63016** and the message is **Undelivered**.\n\n**Fix:** the morning digest asks users to **reply (\"OK\")** to reopen their 24h window. A reply works; a reaction (emoji) does **not**. Going >24h without replying still fails until they message again.\n\nFully reliable delivery needs an approved template on a paid production sender.",
+          "height": 256,
+          "width": 436,
+          "color": 3
+        },
+        "id": "a72b497f-03c4-4a1a-b0b9-61bc094e8658",
+        "name": "⚠️ 24h Messaging Window",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -512,
+          -320
+        ]
+      }
+    ],
+    "connections": {
+      "Every Morning at 7am": {
+        "main": [
+          [
+            {
+              "node": "Fetch Today's Matches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Match Summary": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Every Night at 11pm": {
+        "main": [
+          [
+            {
+              "node": "Fetch Today's Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Format Results Summary": {
+        "main": [
+          [
+            {
+              "node": "Send WhatsApp Message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Today's Matches": {
+        "main": [
+          [
+            {
+              "node": "Fetch Next UTC Matches",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Next UTC Matches": {
+        "main": [
+          [
+            {
+              "node": "Format Match Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Today's Results": {
+        "main": [
+          [
+            {
+              "node": "Fetch Next UTC Results",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Next UTC Results": {
+        "main": [
+          [
+            {
+              "node": "Format Results Summary",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "nodeGroups": [],
+    "authors": "Kevin Diaz",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-06-12T02:18:36.838Z",
+        "id": 55,
+        "workflowId": "r2kp3lSJz2pOfKBl",
+        "versionId": "ac41dedc-b535-4c20-b75f-fe39ffc8cf24",
+        "event": "activated",
+        "userId": "831de140-d6fc-405b-aa04-a06b99cee97c"
+      }
+    ]
   }
 }
