@@ -512,11 +512,7 @@
           944,
           112
         ],
-        "credentials": {
-          "twilioApi": {
-            "id": "wj8PKKKy18XUChtJ",
-            "name": "Twilio account"
-          }
+            "id": "",
         }
       },
       {
