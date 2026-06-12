@@ -389,7 +389,7 @@
     }
   },
   "meta": {
-    "templateCredsSetupCompleted": true,
+    "templateCredsSetupCompleted": false,
     "aiBuilderAssisted": true,
     "builderVariant": "mcp"
   },
