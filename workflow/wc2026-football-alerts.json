@@ -386,9 +386,6 @@
     },
     "node:Every Night at 11pm": {
       "recurrenceRules": []
-    },
-    "node:Every Night at 11pm - Test": {
-      "recurrenceRules": []
     }
   },
   "meta": {
